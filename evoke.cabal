@@ -1,0 +1,68 @@
+cabal-version: >= 1.10
+
+name: evoke
+version: 0.2021.8.25
+synopsis: A GHC plugin to derive instances.
+description: Evoke is a GHC plugin to derive instances.
+
+build-type: Simple
+category: Plugin
+license-file: LICENSE.txt
+license: MIT
+maintainer: Taylor Fausak
+
+source-repository head
+  location: https://github.com/tfausak/evoke
+  type: git
+
+library
+  build-depends:
+    base >= 4.14.1 && < 4.15
+    , ghc >= 8.10.4 && < 8.11
+    , random >= 1.2.0 && < 1.3
+  default-language: Haskell2010
+  exposed-modules:
+    Evoke
+    Evoke.Constant.Module
+    Evoke.Generator.Arbitrary
+    Evoke.Generator.Common
+    Evoke.Generator.FromJSON
+    Evoke.Generator.ToJSON
+    Evoke.Generator.ToSchema
+    Evoke.Hs
+    Evoke.Hsc
+    Evoke.Options
+    Evoke.Type.Config
+    Evoke.Type.Constructor
+    Evoke.Type.Field
+    Evoke.Type.Flag
+    Evoke.Type.Type
+  ghc-options:
+    -Weverything
+    -Wno-all-missed-specialisations
+    -Wno-implicit-prelude
+    -Wno-missing-deriving-strategies
+    -Wno-missing-exported-signatures
+    -Wno-missing-safe-haskell-mode
+    -Wno-prepositive-qualified-module
+    -Wno-safe
+    -Wno-unsafe
+  hs-source-dirs: src/lib
+  other-modules: Paths_evoke
+
+test-suite test
+  build-depends:
+    base
+    , aeson
+    , evoke
+    , HUnit >= 1.6.2 && < 1.7
+    , insert-ordered-containers >= 0.2.5 && < 0.3
+    , lens >= 4.19.2 && < 4.20
+    , QuickCheck >= 2.14.2 && < 2.15
+    , swagger2 >= 2.6 && < 2.7
+    , text >= 1.2.4 && < 1.3
+  default-language: Haskell2010
+  ghc-options: -rtsopts -threaded
+  hs-source-dirs: src/test
+  main-is: Main.hs
+  type: exitcode-stdio-1.0
