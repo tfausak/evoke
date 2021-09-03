@@ -29,17 +29,17 @@ generate _ lIdP lHsQTyVars lConDecls options srcSpan = do
     . concatMap Constructor.fields
     $ Type.constructors type_
 
-  aeson <- Common.makeRandomModule Module.data_aeson
-  monoid <- Common.makeRandomModule Module.data_monoid
-  text <- Common.makeRandomModule Module.data_text
+  aeson <- Common.makeRandomModule Module.dataAeson
+  monoid <- Common.makeRandomModule Module.dataMonoid
+  text <- Common.makeRandomModule Module.dataText
   var1 <- Common.makeRandomVariable srcSpan "var_"
   var2 <- Common.makeRandomVariable srcSpan "var_"
   let
     lImportDecls = Hs.importDecls
       srcSpan
-      [ (Module.data_aeson, aeson)
-      , (Module.data_monoid, monoid)
-      , (Module.data_text, text)
+      [ (Module.dataAeson, aeson)
+      , (Module.dataMonoid, monoid)
+      , (Module.dataText, text)
       ]
 
     toPair lRdrName (occName, fieldName) =

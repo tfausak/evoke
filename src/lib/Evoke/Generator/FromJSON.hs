@@ -28,16 +28,16 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
     . concatMap Constructor.fields
     $ Type.constructors type_
 
-  applicative <- Common.makeRandomModule Module.control_applicative
-  aeson <- Common.makeRandomModule Module.data_aeson
-  text <- Common.makeRandomModule Module.data_text
+  applicative <- Common.makeRandomModule Module.controlApplicative
+  aeson <- Common.makeRandomModule Module.dataAeson
+  text <- Common.makeRandomModule Module.dataText
   object <- Common.makeRandomVariable srcSpan "object_"
   let
     lImportDecls = Hs.importDecls
       srcSpan
-      [ (Module.control_applicative, applicative)
-      , (Module.data_aeson, aeson)
-      , (Module.data_text, text)
+      [ (Module.controlApplicative, applicative)
+      , (Module.dataAeson, aeson)
+      , (Module.dataText, text)
       ]
 
     bindStmts = fmap

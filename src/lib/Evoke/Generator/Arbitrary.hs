@@ -22,13 +22,13 @@ generate _ lIdP lHsQTyVars lConDecls _ srcSpan = do
     mapM (fromField srcSpan) . concatMap Constructor.fields $ Type.constructors
       type_
 
-  applicative <- Common.makeRandomModule Module.control_applicative
-  quickCheck <- Common.makeRandomModule Module.test_quickCheck
+  applicative <- Common.makeRandomModule Module.controlApplicative
+  quickCheck <- Common.makeRandomModule Module.testQuickCheck
   let
     lImportDecls = Hs.importDecls
       srcSpan
-      [ (Module.control_applicative, applicative)
-      , (Module.test_quickCheck, quickCheck)
+      [ (Module.controlApplicative, applicative)
+      , (Module.testQuickCheck, quickCheck)
       ]
 
     bindStmts = fmap

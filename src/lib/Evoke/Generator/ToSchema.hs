@@ -29,26 +29,26 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
     . concatMap Constructor.fields
     $ Type.constructors type_
 
-  applicative <- Common.makeRandomModule Module.control_applicative
-  lens <- Common.makeRandomModule Module.control_lens
-  hashMap <- Common.makeRandomModule Module.data_hashMap_strict_insOrd
-  dataMaybe <- Common.makeRandomModule Module.data_maybe
-  monoid <- Common.makeRandomModule Module.data_monoid
-  proxy <- Common.makeRandomModule Module.data_proxy
-  swagger <- Common.makeRandomModule Module.data_swagger
-  text <- Common.makeRandomModule Module.data_text
+  applicative <- Common.makeRandomModule Module.controlApplicative
+  lens <- Common.makeRandomModule Module.controlLens
+  hashMap <- Common.makeRandomModule Module.dataHashMapStrictInsOrd
+  dataMaybe <- Common.makeRandomModule Module.dataMaybe
+  monoid <- Common.makeRandomModule Module.dataMonoid
+  proxy <- Common.makeRandomModule Module.dataProxy
+  swagger <- Common.makeRandomModule Module.dataSwagger
+  text <- Common.makeRandomModule Module.dataText
   ignored <- Common.makeRandomVariable srcSpan "_proxy_"
   let
     lImportDecls = Hs.importDecls
       srcSpan
-      [ (Module.control_applicative, applicative)
-      , (Module.control_lens, lens)
-      , (Module.data_hashMap_strict_insOrd, hashMap)
-      , (Module.data_maybe, dataMaybe)
-      , (Module.data_monoid, monoid)
-      , (Module.data_proxy, proxy)
-      , (Module.data_swagger, swagger)
-      , (Module.data_text, text)
+      [ (Module.controlApplicative, applicative)
+      , (Module.controlLens, lens)
+      , (Module.dataHashMapStrictInsOrd, hashMap)
+      , (Module.dataMaybe, dataMaybe)
+      , (Module.dataMonoid, monoid)
+      , (Module.dataProxy, proxy)
+      , (Module.dataSwagger, swagger)
+      , (Module.dataText, text)
       ]
 
     toBind field var =
