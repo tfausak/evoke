@@ -9,6 +9,7 @@ module Evoke.Generator.Common
   ) where
 
 import qualified Bag as Ghc
+import qualified Control.Monad.IO.Class as IO
 import qualified Data.Char as Char
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
@@ -205,7 +206,7 @@ makeRandomVariable srcSpan prefix = do
     word16
 
 randomWord16 :: Ghc.Hsc Word.Word16
-randomWord16 = Random.randomIO
+randomWord16 = IO.liftIO Random.randomIO
 
 -- | Makes a random module name. This will convert any periods to underscores
 -- and add a unique suffix.
