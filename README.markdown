@@ -216,11 +216,11 @@ And here's what the generated instance might look like:
 ``` hs
 instance Test.QuickCheck.Arbitrary Person where
   arbitrary = do
-    name_0001 <- Test.QuickCheck.arbitrary
-    age_0002 <- Test.QuickCheck.arbitrary
+    name_1 <- Test.QuickCheck.arbitrary
+    age_2 <- Test.QuickCheck.arbitrary
     Control.Applicative.pure Person
-      { name = name_0001
-      , age = age_0002
+      { name = name_1
+      , age = age_2
       }
 ```
 
@@ -240,12 +240,12 @@ And here's what the generated instance might look like:
 
 ``` hs
 instance Data.Aeson.FromJSON Person where
-  parseJSON = Data.Aeson.withObject "Main.Person" (\ object_0001 -> do
-    name_0002 <- object_0001 Data.Aeson..: Data.Text.pack "name"
-    age_0003 <- object_0001 Data.Aeson..: Data.Text.pack "age"
+  parseJSON = Data.Aeson.withObject "Main.Person" (\ object_1 -> do
+    name_2 <- object_1 Data.Aeson..: Data.Text.pack "name"
+    age_3 <- object_1 Data.Aeson..: Data.Text.pack "age"
     Control.Applicative.pure Person
-      { name = name_0002
-      , age = age_0003
+      { name = name_2
+      , age = age_3
       })
 ```
 
@@ -265,13 +265,13 @@ And here's what the generated instance might look like:
 
 ``` hs
 instance Data.Aeson.ToJSON Person where
-  toJSON var_0001 = Data.Aeson.object
-    [ Data.Text.pack "name" Data.Aeson..= name var_0001
-    , Data.Text.pack "age" Data.Aeson..= age var_0001
+  toJSON var_1 = Data.Aeson.object
+    [ Data.Text.pack "name" Data.Aeson..= name var_1
+    , Data.Text.pack "age" Data.Aeson..= age var_1
     ]
-  toEncoding var_0002 = Data.Aeson.pairs (Data.Monoid.mconcat
-    [ Data.Text.pack "name" Data.Aeson..= name var_0002
-    , Data.Text.pack "age" Data.Aeson..= age var_0002
+  toEncoding var_2 = Data.Aeson.pairs (Data.Monoid.mconcat
+    [ Data.Text.pack "name" Data.Aeson..= name var_2
+    , Data.Text.pack "age" Data.Aeson..= age var_2
     ])
 ```
 
@@ -291,16 +291,16 @@ And here's what the generated instance might look like:
 
 ``` hs
 instance Data.Swagger.ToSchema Person where
-  declareNamedSchema _proxy_0001 = do
-    name_0001 <- Data.Swagger.declareSchemaRef (Data.Proxy.Proxy :: Data.Proxy.Proxy String)
-    age_0002 <- Data.Swagger.declareSchemaRef (Data.Proxy.Proxy :: Data.Proxy.Proxy Int)
+  declareNamedSchema _proxy_1 = do
+    name_2 <- Data.Swagger.declareSchemaRef (Data.Proxy.Proxy :: Data.Proxy.Proxy String)
+    age_3 <- Data.Swagger.declareSchemaRef (Data.Proxy.Proxy :: Data.Proxy.Proxy Int)
     Control.Applicative.pure (Data.Swagger.NamedSchema
       (Data.Maybe.Just (Data.Text.pack "Main.Person"))
       (Data.Monoid.mempty
           Control.Lens.& Data.Swagger.type_ Control.Lens.?~ Data.Swagger.SwaggerObject
           Control.Lens.& Data.Swagger.properties Control.Lens..~ Data.HashMap.Strict.InsOrd.fromList
-            [ (Data.Text.pack "name", name_0001)
-            , (Data.Text.pack "age", age_0002)
+            [ (Data.Text.pack "name", name_2)
+            , (Data.Text.pack "age", age_3)
             ]
           Control.Lens.& Data.Swagger.required Control.Lens..~
             [ Data.Text.pack "name"

@@ -11,9 +11,9 @@ module Evoke.Generator.Common
 import qualified Bag as Ghc
 import qualified Control.Monad.IO.Class as IO
 import qualified Data.Char as Char
+import qualified Data.IORef as IORef
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
-import qualified Data.Word as Word
 import qualified Evoke.Hs as Hs
 import qualified Evoke.Hsc as Hsc
 import qualified Evoke.Type.Constructor as Constructor
@@ -22,7 +22,7 @@ import qualified Evoke.Type.Type as Type
 import qualified GHC.Hs as Ghc
 import qualified GhcPlugins as Ghc
 import qualified System.Console.GetOpt as Console
-import qualified System.Random as Random
+import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Printf as Printf
 
 type Generator
@@ -199,27 +199,24 @@ makeHsImplicitBndrs srcSpan type_ moduleName className =
 -- | Makes a random variable name using the given prefix.
 makeRandomVariable :: Ghc.SrcSpan -> String -> Ghc.Hsc (Ghc.LIdP Ghc.GhcPs)
 makeRandomVariable srcSpan prefix = do
-  word16 <- randomWord16
+  n <- bumpCounter
   pure . Ghc.L srcSpan . Ghc.Unqual . Ghc.mkVarOcc $ Printf.printf
-    "%s%04x"
+    "%s%d"
     prefix
-    word16
-
-randomWord16 :: Ghc.Hsc Word.Word16
-randomWord16 = IO.liftIO Random.randomIO
+    n
 
 -- | Makes a random module name. This will convert any periods to underscores
 -- and add a unique suffix.
 --
 -- >>> makeRandomModule "Data.Aeson"
--- "Data_Aeson_01ef"
+-- "Data_Aeson_1"
 makeRandomModule :: Ghc.ModuleName -> Ghc.Hsc Ghc.ModuleName
 makeRandomModule moduleName = do
-  word16 <- randomWord16
+  n <- bumpCounter
   pure . Ghc.mkModuleName $ Printf.printf
-    "%s_%04x"
+    "%s_%d"
     (underscoreAll moduleName)
-    word16
+    n
 
 underscoreAll :: Ghc.ModuleName -> String
 underscoreAll = fmap underscoreOne . Ghc.moduleNameString
@@ -303,3 +300,10 @@ makeGRHSs srcSpan hsExpr =
   Ghc.GRHSs Ghc.noExtField [Hs.grhs srcSpan hsExpr]
     . Ghc.L srcSpan
     $ Ghc.EmptyLocalBinds Ghc.noExtField
+
+bumpCounter :: IO.MonadIO m => m Word
+bumpCounter = IO.liftIO . IORef.atomicModifyIORef' counterRef $ \ n -> (n + 1, n)
+
+counterRef :: IORef.IORef Word
+counterRef = Unsafe.unsafePerformIO $ IORef.newIORef 0
+{-# NOINLINE counterRef #-}
