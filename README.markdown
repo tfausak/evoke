@@ -1,8 +1,7 @@
 # Evoke
 
-:crystal_ball:
-Evoke is a GHC plugin to automatically derive type class instances without
-using generics or Template Haskell.
+:crystal_ball: Evoke is a GHC plugin that automatically derives type class
+instances without using generics or Template Haskell.
 
 - [Motivation](#motivation)
 - [Installation](#installation)
@@ -24,7 +23,8 @@ As a motivating example, let's say you have the following data type:
 ``` hs
 data Person = Person
   { name :: String
-  , age :: Int }
+  , age :: Int
+  }
 ```
 
 And let's also say that you want to send and receive this data type over the
@@ -37,12 +37,16 @@ instance FromJSON Person where
   parseJSON = withObject "Person" $ \ object -> do
     theirName <- object .: "name"
     theirAge <- object .: "age"
-    pure Person { name = theirName, age = theirAge }
+    pure Person
+      { name = theirName
+      , age = theirAge
+      }
 
 instance ToJSON Person where
   toJSON person = object
     [ "name" .= name person
-    , "age" .= age person ]
+    , "age" .= age person
+    ]
 ```
 
 This is not difficult, but it's tedious and error prone. It's tedious because
@@ -77,8 +81,8 @@ without causing unnecessary recompilations: generics. It's also simple to use:
 ``` hs
 data Person = Person
   { name :: String
-  , age :: Int }
-  deriving (Generic, FromJSON, ToJSON)
+  , age :: Int
+  } deriving (Generic, FromJSON, ToJSON)
 ```
 
 Again the generated instances will behavior similarly to our hand-written
@@ -105,7 +109,7 @@ Please let me know if you'd like to use Evoke with a different version of GHC.
 You can install Evoke by adding it to the `build-depends` section of your
 `*.cabal` file. For example:
 
-```
+``` cabal
 name: example
 version: 0
 library
@@ -128,7 +132,7 @@ It can be tedious to add that pragma to each file that needs it. Instead you
 can enable Evoke for every file in a package by adding it to the `ghc-options`
 section of your `*.cabal` file. For example:
 
-```
+``` cabal
 name: example
 version: 0
 library
@@ -145,10 +149,10 @@ compiled. In order to convince Evoke to derive an instance for you, you must
 write a deriving clause like this:
 
 ``` hs
-newtype Person
-  = Person { name :: String }
-  deriving SomeTypeClass via "Evoke"
---                       ^^^^^^^^^^^
+newtype Person = Person
+  { name :: String
+  } deriving SomeTypeClass via "Evoke"
+--                         ^^^^^^^^^^^
 ```
 
 Note that `"Evoke"` is a literal string. You do not need to have any language
@@ -169,10 +173,10 @@ Each type class can accept its own options, which you can pass by adding them
 to the `"Evoke"` string used. For example:
 
 ``` hs
-newtype Person
-  = Person { name :: String }
-  deriving SomeTypeClass via "Evoke --some-option"
---                                  ^^^^^^^^^^^^^
+newtype Person = Person
+  { name :: String
+  } deriving SomeTypeClass via "Evoke --some-option"
+--                                    ^^^^^^^^^^^^^
 ```
 
 ## Type Classes
@@ -207,8 +211,8 @@ Here's an example of how to derive `Arbitrary` using Evoke:
 {-# OPTIONS_GHC -fplugin=Evoke #-}
 data Person = Person
   { name :: String
-  , age :: Int }
-  deriving Arbitrary via "Evoke"
+  , age :: Int
+  } deriving Arbitrary via "Evoke"
 ```
 
 And here's what the generated instance might look like:
@@ -232,8 +236,8 @@ Here's an example of how to derive `FromJSON` using Evoke:
 {-# OPTIONS_GHC -fplugin=Evoke #-}
 data Person = Person
   { name :: String
-  , age :: Int }
-  deriving FromJSON via "Evoke"
+  , age :: Int
+  } deriving FromJSON via "Evoke"
 ```
 
 And here's what the generated instance might look like:
@@ -257,8 +261,8 @@ Here's an example of how to derive `ToJSON` using Evoke:
 {-# OPTIONS_GHC -fplugin=Evoke #-}
 data Person = Person
   { name :: String
-  , age :: Int }
-  deriving ToJSON via "Evoke"
+  , age :: Int
+  } deriving ToJSON via "Evoke"
 ```
 
 And here's what the generated instance might look like:
@@ -283,8 +287,8 @@ Here's an example of how to derive `ToSchema` using Evoke:
 {-# OPTIONS_GHC -fplugin=Evoke #-}
 data Person = Person
   { name :: String
-  , age :: Int }
-  deriving ToSchema via "Evoke"
+  , age :: Int
+  } deriving ToSchema via "Evoke"
 ```
 
 And here's what the generated instance might look like:
