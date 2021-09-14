@@ -349,7 +349,8 @@ handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType
         generate moduleName lIdP lHsQTyVars lConDecls options srcSpan
       Nothing -> Hsc.throwError srcSpan $ Ghc.text "unsupported type class"
 
-    Monad.when (Config.verbose config) $ do
+    verbose <- isVerbose config
+    Monad.when verbose $ do
       dynFlags <- Ghc.getDynFlags
       IO.liftIO $ do
         putStrLn $ replicate 80 '-'
@@ -357,6 +358,11 @@ handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType
         mapM_ (putStrLn . Ghc.showSDocDump dynFlags . Ghc.ppr) lHsDecls
 
     pure (lImportDecls, lHsDecls)
+
+isVerbose :: Config.Config -> Ghc.Hsc Bool
+isVerbose config = do
+  dynFlags <- Ghc.getDynFlags
+  pure $ Config.verbose config || Ghc.dopt Ghc.Opt_D_dump_deriv dynFlags
 
 getGenerator :: Ghc.LHsSigType Ghc.GhcPs -> Maybe Common.Generator
 getGenerator lHsSigType = do

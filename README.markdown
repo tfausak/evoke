@@ -170,6 +170,14 @@ The Evoke plugin itself accepts options, which you can pass using GHC's
 --                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
+Evoke will also output the instances that it generates when you pass the
+`-ddump-deriv` flag to GHC. For example:
+
+``` hs
+{-# OPTIONS_GHC -fplugin=Evoke -ddump-deriv #-}
+--                             ^^^^^^^^^^^^
+```
+
 Each type class can accept its own options, which you can pass by adding them
 to the `"Evoke"` string used. For example:
 
