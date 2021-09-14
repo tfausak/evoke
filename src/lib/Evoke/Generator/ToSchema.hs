@@ -2,6 +2,7 @@ module Evoke.Generator.ToSchema
   ( generate
   ) where
 
+import qualified Data.List as List
 import qualified Evoke.Constant.Module as Module
 import qualified Evoke.Generator.Common as Common
 import qualified Evoke.Hs as Hs
@@ -26,6 +27,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
 
   fields <-
     mapM (fromField srcSpan modifyFieldName)
+    . List.sortOn Field.name
     . concatMap Constructor.fields
     $ Type.constructors type_
 

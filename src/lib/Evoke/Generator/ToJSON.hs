@@ -2,6 +2,7 @@ module Evoke.Generator.ToJSON
   ( generate
   ) where
 
+import qualified Data.List as List
 import qualified Evoke.Constant.Module as Module
 import qualified Evoke.Generator.Common as Common
 import qualified Evoke.Hs as Hs
@@ -25,6 +26,7 @@ generate _ lIdP lHsQTyVars lConDecls options srcSpan = do
 
   fieldNames <-
     mapM (fromField modifyFieldName)
+    . List.sort
     . fmap Field.name
     . concatMap Constructor.fields
     $ Type.constructors type_

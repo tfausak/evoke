@@ -2,6 +2,7 @@ module Evoke.Generator.Arbitrary
   ( generate
   ) where
 
+import qualified Data.List as List
 import qualified Evoke.Constant.Module as Module
 import qualified Evoke.Generator.Common as Common
 import qualified Evoke.Hs as Hs
@@ -19,8 +20,10 @@ generate _ lIdP lHsQTyVars lConDecls _ srcSpan = do
     [x] -> pure x
     _ -> Hsc.throwError srcSpan $ Ghc.text "requires exactly one constructor"
   fields <-
-    mapM (fromField srcSpan) . concatMap Constructor.fields $ Type.constructors
-      type_
+    mapM (fromField srcSpan)
+    . List.sortOn Field.name
+    . concatMap Constructor.fields
+    $ Type.constructors type_
 
   applicative <- Common.makeRandomModule Module.controlApplicative
   quickCheck <- Common.makeRandomModule Module.testQuickCheck
