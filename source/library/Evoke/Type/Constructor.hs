@@ -7,7 +7,7 @@ import qualified Control.Monad as Monad
 import qualified Evoke.Hsc as Hsc
 import qualified Evoke.Type.Field as Field
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 
 data Constructor = Constructor
   { name :: Ghc.IdP Ghc.GhcPs

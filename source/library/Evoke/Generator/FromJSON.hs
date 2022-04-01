@@ -12,7 +12,7 @@ import qualified Evoke.Type.Constructor as Constructor
 import qualified Evoke.Type.Field as Field
 import qualified Evoke.Type.Type as Type
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 
 generate :: Common.Generator
 generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do

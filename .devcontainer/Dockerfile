@@ -1,4 +1,4 @@
-FROM haskell:8.10.7-slim
+FROM haskell:9.0.2-slim
 
 RUN apt-get update && \
   apt-get install --assume-yes --no-install-recommends sudo

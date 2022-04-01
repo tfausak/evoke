@@ -4,7 +4,7 @@ module Evoke.Options
 
 import qualified Control.Monad as Monad
 import qualified Evoke.Hsc as Hsc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 import qualified System.Console.GetOpt as Console
 
 -- | Parses command line options. Adds warnings and throws errors as
