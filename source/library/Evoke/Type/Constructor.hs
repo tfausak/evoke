@@ -26,6 +26,5 @@ make srcSpan lConDecl = do
     fmap concat . Monad.forM (Ghc.unLoc lConDeclFields) $ \lConDeclField -> do
       (lFieldOccs, lHsType) <- case Ghc.unLoc lConDeclField of
         Ghc.ConDeclField _ x y _ -> pure (x, y)
-        _ -> Hsc.throwError srcSpan $ Ghc.text "unsupported LConDeclField"
       mapM (Field.make srcSpan lHsType) lFieldOccs
   pure Constructor { name = Ghc.unLoc lIdP, fields = theFields }

@@ -199,7 +199,6 @@ handleHsDataDefn config moduleName lIdP lHsQTyVars hsDataDefn =
             hsDeriving
           , (lImportDecls, lHsDecls)
           )
-    _ -> pure (hsDataDefn, ([], []))
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
 handleHsDeriving
@@ -289,7 +288,6 @@ parseDerivingStrategy mLDerivStrategy = do
     _ -> Nothing
   lHsType <- case lHsSigType of
     Ghc.HsIB _ x -> Just x
-    _ -> Nothing
   hsTyLit <- case Ghc.unLoc lHsType of
     Ghc.HsTyLit _ x -> Just x
     _ -> Nothing
@@ -343,7 +341,6 @@ handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType
     let
       srcSpan = case lHsSigType of
         Ghc.HsIB _ x -> Ghc.getLoc x
-        _ -> Ghc.getLoc lIdP
     (lImportDecls, lHsDecls) <- case getGenerator lHsSigType of
       Just generate ->
         generate moduleName lIdP lHsQTyVars lConDecls options srcSpan
@@ -382,7 +379,6 @@ getClassName :: Ghc.LHsSigType Ghc.GhcPs -> Maybe String
 getClassName lHsSigType = do
   lHsType <- case lHsSigType of
     Ghc.HsIB _ x -> Just x
-    _ -> Nothing
   lIdP <- case Ghc.unLoc lHsType of
     Ghc.HsTyVar _ _ x -> Just x
     _ -> Nothing
