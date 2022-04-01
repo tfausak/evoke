@@ -32,14 +32,14 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
 
   applicative <- Common.makeRandomModule Module.controlApplicative
   aeson <- Common.makeRandomModule Module.dataAeson
-  text <- Common.makeRandomModule Module.dataText
+  string <- Common.makeRandomModule Module.dataString
   object <- Common.makeRandomVariable srcSpan "object_"
   let
     lImportDecls = Hs.importDecls
       srcSpan
       [ (Module.controlApplicative, applicative)
       , (Module.dataAeson, aeson)
-      , (Module.dataText, text)
+      , (Module.dataString, string)
       ]
 
     bindStmts = fmap
@@ -52,7 +52,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
               . Ghc.mkVarOcc
               $ if Field.isOptional field then ".:?" else ".:"
               )
-          . Hs.app srcSpan (Hs.qualVar srcSpan text $ Ghc.mkVarOcc "pack")
+          . Hs.app srcSpan (Hs.qualVar srcSpan string $ Ghc.mkVarOcc "fromString")
           . Hs.lit srcSpan
           $ Hs.string name
       )

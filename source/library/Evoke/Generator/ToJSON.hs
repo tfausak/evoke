@@ -33,7 +33,7 @@ generate _ lIdP lHsQTyVars lConDecls options srcSpan = do
 
   aeson <- Common.makeRandomModule Module.dataAeson
   monoid <- Common.makeRandomModule Module.dataMonoid
-  text <- Common.makeRandomModule Module.dataText
+  string <- Common.makeRandomModule Module.dataString
   var1 <- Common.makeRandomVariable srcSpan "var_"
   var2 <- Common.makeRandomVariable srcSpan "var_"
   let
@@ -41,13 +41,13 @@ generate _ lIdP lHsQTyVars lConDecls options srcSpan = do
       srcSpan
       [ (Module.dataAeson, aeson)
       , (Module.dataMonoid, monoid)
-      , (Module.dataText, text)
+      , (Module.dataString, string)
       ]
 
     toPair lRdrName (occName, fieldName) =
       Hs.opApp
           srcSpan
-          (Hs.app srcSpan (Hs.qualVar srcSpan text $ Ghc.mkVarOcc "pack")
+          (Hs.app srcSpan (Hs.qualVar srcSpan string $ Ghc.mkVarOcc "fromString")
           . Hs.lit srcSpan
           $ Hs.string fieldName
           )
