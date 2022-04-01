@@ -17,7 +17,7 @@ import qualified Evoke.Options as Options
 import qualified Evoke.Type.Config as Config
 import qualified Evoke.Type.Flag as Flag
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 import qualified Paths_evoke as This
 import qualified System.Console.GetOpt as Console
 
@@ -91,22 +91,22 @@ version = Version.showVersion This.version
 handleLHsModule
   :: Config.Config
   -> Ghc.ModuleName
-  -> LHsModule Ghc.GhcPs
-  -> Ghc.Hsc (LHsModule Ghc.GhcPs)
+  -> LHsModule
+  -> Ghc.Hsc LHsModule
 handleLHsModule config moduleName lHsModule = do
   hsModule <- handleHsModule config moduleName $ Ghc.unLoc lHsModule
   pure $ Ghc.mapLoc (const hsModule) lHsModule
 
 -- | Most GHC types have type aliases for their located versions. For some
 -- reason the module type doesn't.
-type LHsModule pass = Ghc.Located (Ghc.HsModule pass)
+type LHsModule = Ghc.Located Ghc.HsModule
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
 handleHsModule
   :: Config.Config
   -> Ghc.ModuleName
-  -> Ghc.HsModule Ghc.GhcPs
-  -> Ghc.Hsc (Ghc.HsModule Ghc.GhcPs)
+  -> Ghc.HsModule
+  -> Ghc.Hsc Ghc.HsModule
 handleHsModule config moduleName hsModule = do
   (lImportDecls, lHsDecls) <- handleLHsDecls config moduleName
     $ Ghc.hsmodDecls hsModule

@@ -11,7 +11,7 @@ module Evoke.Constant.Module
   , testQuickCheck
   ) where
 
-import qualified Module as Ghc
+import qualified GHC.Unit.Module as Ghc
 
 controlApplicative :: Ghc.ModuleName
 controlApplicative = Ghc.mkModuleName "Control.Applicative"
