@@ -25,7 +25,6 @@ make
 make lIdP lHsQTyVars lConDecls srcSpan = do
   lHsTyVarBndrs <- case lHsQTyVars of
     Ghc.HsQTvs _ hsq_explicit -> pure hsq_explicit
-    _ -> Hsc.throwError srcSpan $ Ghc.text "unsupported LHsQTyVars"
   theVariables <- Monad.forM lHsTyVarBndrs $ \lHsTyVarBndr ->
     case Ghc.unLoc lHsTyVarBndr of
       Ghc.UserTyVar _ _ var -> pure $ Ghc.unLoc var
