@@ -7,7 +7,7 @@ services:
     volumes:
       - ..:/workspace:cached
       - cabal:/home/haskell/.cabal:cached
-      - cabal-store:/home/haskell/.cabal/store:cached
+      - cabal-store:/cabal-store:cached
     working_dir: /workspace
 volumes:
   cabal: null
