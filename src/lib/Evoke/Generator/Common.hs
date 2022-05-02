@@ -14,6 +14,7 @@ import qualified Data.Char as Char
 import qualified Data.IORef as IORef
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
+import qualified Data.Text as Text
 import qualified Evoke.Hs as Hs
 import qualified Evoke.Hsc as Hsc
 import qualified Evoke.Type.Constructor as Constructor
@@ -49,6 +50,14 @@ fieldNameOptions srcSpan =
       "PREFIX"
     )
     ""
+  , Console.Option
+    []
+    ["suffix"]
+    (Console.ReqArg
+      (stripSuffix srcSpan)
+      "SUFFIX"
+    )
+    ""
   , Console.Option [] ["title"] (Console.NoArg $ pure . upper) ""
   ]
 
@@ -61,6 +70,16 @@ stripPrefix srcSpan prefix s1 = case List.stripPrefix prefix s1 of
       <> " is not a prefix of "
       <> show s1
   Just s2 -> pure s2
+
+stripSuffix :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
+stripSuffix srcSpan suffix s1 = case Text.stripSuffix (Text.pack suffix) (Text.pack s1) of
+  Nothing ->
+    Hsc.throwError srcSpan
+      . Ghc.text
+      $ show suffix
+      <> " is not a suffix of "
+      <> show s1
+  Just s2 -> pure $ Text.unpack s2
 
 -- | Applies all the monadic functions in order beginning with some starting
 -- value.

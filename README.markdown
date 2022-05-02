@@ -206,6 +206,8 @@ These type classes accept the following options:
   with `--prefix person` the field name `personFirstName` would become
   `FirstName`.
 
+- `--suffix SUFFIX`: Same as `--prefix` except for suffixes.
+
 - `--title`: Convert field names into `TitleCase`. For example `firstName`
   would become `FirstName`.
 

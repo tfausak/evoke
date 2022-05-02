@@ -35,6 +35,7 @@ main = Unit.runTestTTAndExit $ Unit.test
     T13C1 { t13c1f1 = 15, t13c1f2 = 16 }
     [Aeson.aesonQQ| { "t13c1f1": 15, "t13c1f2": 16 } |]
   , testToJSON T14C1 { t14c1f1 = Just 17 } [Aeson.aesonQQ| { "t14c1f1": 17 } |]
+  , testToJSON T15C1 { t15c1f1 = 18 } [Aeson.aesonQQ| { "t15c1": 18 } |]
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T1)
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T2)
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T3)
@@ -49,6 +50,7 @@ main = Unit.runTestTTAndExit $ Unit.test
   , checkInstances (Proxy.Proxy :: Proxy.Proxy (T12 X Int X Int X))
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T13)
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T14)
+  , checkInstances (Proxy.Proxy :: Proxy.Proxy T15)
   ]
 
 checkInstances
@@ -173,3 +175,10 @@ newtype T14 = T14C1
   }
   deriving (Eq, Show)
   deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke"
+
+-- stripped suffix
+newtype T15 = T15C1
+  { t15c1f1 :: Int
+  }
+  deriving (Eq, Show)
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --suffix f1"
