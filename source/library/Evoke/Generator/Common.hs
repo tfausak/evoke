@@ -14,6 +14,7 @@ import qualified Data.Char as Char
 import qualified Data.IORef as IORef
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
+import qualified Data.Text as Text
 import qualified Evoke.Hs as Hs
 import qualified Evoke.Hsc as Hsc
 import qualified Evoke.Type.Constructor as Constructor
@@ -41,24 +42,40 @@ fieldNameOptions srcSpan =
   [ Console.Option [] ["kebab"] (Console.NoArg $ pure . kebab) ""
   , Console.Option [] ["camel"] (Console.NoArg $ pure . lower) ""
   , Console.Option [] ["snake"] (Console.NoArg $ pure . snake) ""
-  , Console.Option
-    []
-    ["strip"]
-    (Console.ReqArg
-      (\prefix s1 -> case List.stripPrefix prefix s1 of
-        Nothing ->
-          Hsc.throwError srcSpan
-            . Ghc.text
-            $ show prefix
-            <> " is not a prefix of "
-            <> show s1
-        Just s2 -> pure s2
-      )
-      "PREFIX"
-    )
-    ""
+  , Console.Option [] ["prefix", "strip"] (Console.ReqArg (stripPrefix srcSpan) "PREFIX" ) ""
+  , Console.Option [] ["suffix"] (Console.ReqArg (stripSuffix srcSpan) "SUFFIX" ) ""
   , Console.Option [] ["title"] (Console.NoArg $ pure . upper) ""
+  , Console.Option [] ["rename"] (Console.ReqArg (rename srcSpan) "OLD:NEW") ""
   ]
+
+stripPrefix :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
+stripPrefix srcSpan prefix s1 = case List.stripPrefix prefix s1 of
+  Nothing ->
+    Hsc.throwError srcSpan
+      . Ghc.text
+      $ show prefix
+      <> " is not a prefix of "
+      <> show s1
+  Just s2 -> pure s2
+
+stripSuffix :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
+stripSuffix srcSpan suffix s1 = case Text.stripSuffix (Text.pack suffix) (Text.pack s1) of
+  Nothing ->
+    Hsc.throwError srcSpan
+      . Ghc.text
+      $ show suffix
+      <> " is not a suffix of "
+      <> show s1
+  Just s2 -> pure $ Text.unpack s2
+
+rename :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
+rename loc arg str =
+  case Text.splitOn (Text.singleton ':') $ Text.pack arg of
+    [old, new] | not (Text.null old || Text.null new) ->
+      pure $ if Text.pack str == old
+        then Text.unpack new
+        else str
+    _ -> Hsc.throwError loc . Ghc.text $ show arg <> " is invalid"
 
 -- | Applies all the monadic functions in order beginning with some starting
 -- value.

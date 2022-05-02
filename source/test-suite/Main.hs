@@ -35,6 +35,8 @@ main = Unit.runTestTTAndExit $ Unit.test
     T13C1 { t13c1f1 = 15, t13c1f2 = 16 }
     [Aeson.aesonQQ| { "t13c1f1": 15, "t13c1f2": 16 } |]
   , testToJSON T14C1 { t14c1f1 = Just 17 } [Aeson.aesonQQ| { "t14c1f1": 17 } |]
+  , testToJSON T15C1 { t15c1f1 = 18 } [Aeson.aesonQQ| { "t15c1": 18 } |]
+  , testToJSON T16C1 { t16c1f1 = 19 } [Aeson.aesonQQ| { "one": 19 } |]
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T1)
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T2)
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T3)
@@ -49,6 +51,8 @@ main = Unit.runTestTTAndExit $ Unit.test
   , checkInstances (Proxy.Proxy :: Proxy.Proxy (T12 X Int X Int X))
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T13)
   , checkInstances (Proxy.Proxy :: Proxy.Proxy T14)
+  , checkInstances (Proxy.Proxy :: Proxy.Proxy T15)
+  , checkInstances (Proxy.Proxy :: Proxy.Proxy T16)
   ]
 
 checkInstances
@@ -115,21 +119,21 @@ newtype T6 = T6C1
   { t6c1f1 :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --strip t6c1"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --prefix t6c1"
 
 -- stripped then capitalized
 newtype T7 = T7C1
   { t7c1f1 :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --strip t7c1 --title"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --prefix t7c1 --title"
 
 -- capitalized then stripped
 newtype T8 = T8C1
   { t8c1f1 :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --title --strip T8c1"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --title --prefix T8c1"
 
 -- phantom type
 newtype T9 a = T9C1
@@ -150,7 +154,7 @@ newtype T11 = T11C1
   { t11c1f1A :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --strip t11c1f1 --camel"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --prefix t11c1f1 --camel"
 
 -- multiple type variables
 data T12 a b c d e = T12C1
@@ -173,3 +177,17 @@ newtype T14 = T14C1
   }
   deriving (Eq, Show)
   deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke"
+
+-- stripped suffix
+newtype T15 = T15C1
+  { t15c1f1 :: Int
+  }
+  deriving (Eq, Show)
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --suffix f1"
+
+-- renamed
+newtype T16 = T16C1
+  { t16c1f1 :: Int
+  }
+  deriving (Eq, Show)
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --rename t16c1f1:one"
