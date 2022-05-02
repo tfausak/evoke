@@ -43,7 +43,7 @@ fieldNameOptions srcSpan =
   , Console.Option [] ["snake"] (Console.NoArg $ pure . snake) ""
   , Console.Option
     []
-    ["strip"]
+    ["prefix", "strip"]
     (Console.ReqArg
       (stripPrefix srcSpan)
       "PREFIX"

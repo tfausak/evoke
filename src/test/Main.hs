@@ -115,21 +115,21 @@ newtype T6 = T6C1
   { t6c1f1 :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --strip t6c1"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --prefix t6c1"
 
 -- stripped then capitalized
 newtype T7 = T7C1
   { t7c1f1 :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --strip t7c1 --title"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --prefix t7c1 --title"
 
 -- capitalized then stripped
 newtype T8 = T8C1
   { t8c1f1 :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --title --strip T8c1"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --title --prefix T8c1"
 
 -- phantom type
 newtype T9 a = T9C1
@@ -150,7 +150,7 @@ newtype T11 = T11C1
   { t11c1f1A :: Int
   }
   deriving (Eq, Show)
-  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --strip t11c1f1 --camel"
+  deriving (Arbitrary, FromJSON, ToJSON, ToSchema) via "Evoke --prefix t11c1f1 --camel"
 
 -- multiple type variables
 data T12 a b c d e = T12C1
