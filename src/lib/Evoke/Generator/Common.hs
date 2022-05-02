@@ -45,20 +45,22 @@ fieldNameOptions srcSpan =
     []
     ["strip"]
     (Console.ReqArg
-      (\prefix s1 -> case List.stripPrefix prefix s1 of
-        Nothing ->
-          Hsc.throwError srcSpan
-            . Ghc.text
-            $ show prefix
-            <> " is not a prefix of "
-            <> show s1
-        Just s2 -> pure s2
-      )
+      (stripPrefix srcSpan)
       "PREFIX"
     )
     ""
   , Console.Option [] ["title"] (Console.NoArg $ pure . upper) ""
   ]
+
+stripPrefix :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
+stripPrefix srcSpan prefix s1 = case List.stripPrefix prefix s1 of
+  Nothing ->
+    Hsc.throwError srcSpan
+      . Ghc.text
+      $ show prefix
+      <> " is not a prefix of "
+      <> show s1
+  Just s2 -> pure s2
 
 -- | Applies all the monadic functions in order beginning with some starting
 -- value.
