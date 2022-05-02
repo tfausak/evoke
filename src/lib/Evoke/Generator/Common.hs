@@ -42,22 +42,8 @@ fieldNameOptions srcSpan =
   [ Console.Option [] ["kebab"] (Console.NoArg $ pure . kebab) ""
   , Console.Option [] ["camel"] (Console.NoArg $ pure . lower) ""
   , Console.Option [] ["snake"] (Console.NoArg $ pure . snake) ""
-  , Console.Option
-    []
-    ["prefix", "strip"]
-    (Console.ReqArg
-      (stripPrefix srcSpan)
-      "PREFIX"
-    )
-    ""
-  , Console.Option
-    []
-    ["suffix"]
-    (Console.ReqArg
-      (stripSuffix srcSpan)
-      "SUFFIX"
-    )
-    ""
+  , Console.Option [] ["prefix", "strip"] (Console.ReqArg (stripPrefix srcSpan) "PREFIX" ) ""
+  , Console.Option [] ["suffix"] (Console.ReqArg (stripSuffix srcSpan) "SUFFIX" ) ""
   , Console.Option [] ["title"] (Console.NoArg $ pure . upper) ""
   ]
 
