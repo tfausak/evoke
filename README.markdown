@@ -196,20 +196,27 @@ These type classes accept the following options:
   would become `first-name`.
 
 - `--camel`: Convert field names into `camelCase`. For example `FirstName`
-  would become `firstName`. This is usually combined with `--strip PREFIX`.
+  would become `firstName`. This is usually combined with `--prefix PREFIX`.
 
 - `--snake`: Convert field names into `snake_case`. For example `firstName`
   would become `first_name`.
 
-- `--strip PREFIX`: Removes the given prefix from field names. If the field
+- `--prefix PREFIX`: Removes the given prefix from field names. If the field
   name doesn't begin with the prefix, an error will be thrown. For example,
-  with `--strip person` the field name `personFirstName` would become
+  with `--prefix person` the field name `personFirstName` would become
   `FirstName`.
+
+- `--suffix SUFFIX`: Same as `--prefix` except for suffixes.
 
 - `--title`: Convert field names into `TitleCase`. For example `firstName`
   would become `FirstName`.
 
-Options are processed in order. So for example `--strip person --kebab` would
+- `--rename OLD:NEW`: Renames the given `OLD` field into the given `NEW` one.
+  This can be useful to use keywords as field names. For example,
+  `--rename type_:type` will change a field called `type_` into a field called
+  `type`.
+
+Options are processed in order. So for example `--prefix person --kebab` would
 change `personFirstName` into `first-name`.
 
 ### Arbitrary
