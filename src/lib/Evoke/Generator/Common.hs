@@ -45,6 +45,7 @@ fieldNameOptions srcSpan =
   , Console.Option [] ["prefix", "strip"] (Console.ReqArg (stripPrefix srcSpan) "PREFIX" ) ""
   , Console.Option [] ["suffix"] (Console.ReqArg (stripSuffix srcSpan) "SUFFIX" ) ""
   , Console.Option [] ["title"] (Console.NoArg $ pure . upper) ""
+  , Console.Option [] ["rename"] (Console.ReqArg (rename srcSpan) "OLD:NEW") ""
   ]
 
 stripPrefix :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
@@ -66,6 +67,15 @@ stripSuffix srcSpan suffix s1 = case Text.stripSuffix (Text.pack suffix) (Text.p
       <> " is not a suffix of "
       <> show s1
   Just s2 -> pure $ Text.unpack s2
+
+rename :: Ghc.SrcSpan -> String -> String -> Ghc.Hsc String
+rename loc arg str =
+  case Text.splitOn (Text.singleton ':') $ Text.pack arg of
+    [old, new] | not (Text.null old || Text.null new) ->
+      pure $ if Text.pack str == old
+        then Text.unpack new
+        else str
+    _ -> Hsc.throwError loc . Ghc.text $ show arg <> " is invalid"
 
 -- | Applies all the monadic functions in order beginning with some starting
 -- value.

@@ -211,6 +211,11 @@ These type classes accept the following options:
 - `--title`: Convert field names into `TitleCase`. For example `firstName`
   would become `FirstName`.
 
+- `--rename OLD:NEW`: Renames the given `OLD` field into the given `NEW` one.
+  This can be useful to use keywords as field names. For example,
+  `--rename type_:type` will change a field called `type_` into a field called
+  `type`.
+
 Options are processed in order. So for example `--prefix person --kebab` would
 change `personFirstName` into `first-name`.
 
