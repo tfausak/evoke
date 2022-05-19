@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  devcontainer:
+    build: .
+    command: sh -x -c 'while :; do sleep 60; done'
+    init: true
+    volumes:
+      - ..:/workspace:cached
+      - cabal:/home/haskell/.cabal:cached
+      - cabal-store:/cabal-store:cached
+    working_dir: /workspace
+volumes:
+  cabal: null
+  cabal-store:
+    external: true

@@ -31,8 +31,7 @@ module Evoke.Hs
   ) where
 
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
-import qualified TcEvidence as Ghc
+import qualified GHC.Plugins as Ghc
 
 app
   :: Ghc.SrcSpan
@@ -47,10 +46,10 @@ bindStmt
   -> Ghc.LHsExpr Ghc.GhcPs
   -> Ghc.LStmt Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)
 bindStmt s p e =
-  Ghc.L s $ Ghc.BindStmt Ghc.noExtField p e noSyntaxExpr noSyntaxExpr
+  Ghc.L s $ Ghc.BindStmt Ghc.noExtField p e
 
 doExpr :: Ghc.SrcSpan -> [Ghc.ExprLStmt Ghc.GhcPs] -> Ghc.LHsExpr Ghc.GhcPs
-doExpr s = Ghc.L s . Ghc.HsDo Ghc.noExtField Ghc.DoExpr . Ghc.L s
+doExpr s = Ghc.L s . Ghc.HsDo Ghc.noExtField (Ghc.DoExpr Nothing) . Ghc.L s
 
 explicitList
   :: Ghc.SrcSpan -> [Ghc.LHsExpr Ghc.GhcPs] -> Ghc.LHsExpr Ghc.GhcPs
@@ -69,7 +68,7 @@ funBind
   -> Ghc.MatchGroup Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)
   -> Ghc.LHsBind Ghc.GhcPs
 funBind s f g =
-  Ghc.L s $ Ghc.FunBind Ghc.noExtField (unqual s f) g Ghc.WpHole []
+  Ghc.L s $ Ghc.FunBind Ghc.noExtField (unqual s f) g []
 
 grhs
   :: Ghc.SrcSpan
@@ -94,7 +93,7 @@ importDecl s m n = Ghc.L s $ Ghc.ImportDecl
   Ghc.NoSourceText
   (Ghc.L s m)
   Nothing
-  False
+  Ghc.NotBoot
   False
   Ghc.QualifiedPre
   False
@@ -117,17 +116,17 @@ lastStmt
   :: Ghc.SrcSpan
   -> Ghc.LHsExpr Ghc.GhcPs
   -> Ghc.LStmt Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)
-lastStmt s e = Ghc.L s $ Ghc.LastStmt Ghc.noExtField e False noSyntaxExpr
+lastStmt s e = Ghc.L s $ Ghc.LastStmt Ghc.noExtField e Nothing noSyntaxExpr
 
 lit :: Ghc.SrcSpan -> Ghc.HsLit Ghc.GhcPs -> Ghc.LHsExpr Ghc.GhcPs
 lit s = Ghc.L s . Ghc.HsLit Ghc.noExtField
 
 noSyntaxExpr :: Ghc.SyntaxExpr Ghc.GhcPs
-noSyntaxExpr = Ghc.SyntaxExpr Ghc.noExpr [] Ghc.WpHole
+noSyntaxExpr = Ghc.noSyntaxExpr
 
 match
   :: Ghc.SrcSpan
-  -> Ghc.HsMatchContext Ghc.RdrName
+  -> Ghc.HsMatchContext (Ghc.NoGhcTc Ghc.GhcPs)
   -> [Ghc.LPat Ghc.GhcPs]
   -> Ghc.GRHSs Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)
   -> Ghc.LMatch Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)

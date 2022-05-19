@@ -12,7 +12,7 @@ import qualified Evoke.Type.Constructor as Constructor
 import qualified Evoke.Type.Field as Field
 import qualified Evoke.Type.Type as Type
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 
 generate :: Common.Generator
 generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
@@ -37,8 +37,8 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
   dataMaybe <- Common.makeRandomModule Module.dataMaybe
   monoid <- Common.makeRandomModule Module.dataMonoid
   proxy <- Common.makeRandomModule Module.dataProxy
+  string <- Common.makeRandomModule Module.dataString
   swagger <- Common.makeRandomModule Module.dataSwagger
-  text <- Common.makeRandomModule Module.dataText
   ignored <- Common.makeRandomVariable srcSpan "_proxy_"
   let
     lImportDecls = Hs.importDecls
@@ -49,8 +49,8 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
       , (Module.dataMaybe, dataMaybe)
       , (Module.dataMonoid, monoid)
       , (Module.dataProxy, proxy)
+      , (Module.dataString, string)
       , (Module.dataSwagger, swagger)
-      , (Module.dataText, text)
       ]
 
     toBind field var =
@@ -94,7 +94,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
         $ fmap
             (\((_, name), var) -> Hs.explicitTuple srcSpan $ fmap
               (Hs.tupArg srcSpan)
-              [ Hs.app srcSpan (Hs.qualVar srcSpan text $ Ghc.mkVarOcc "pack")
+              [ Hs.app srcSpan (Hs.qualVar srcSpan string $ Ghc.mkVarOcc "fromString")
               . Hs.lit srcSpan
               $ Hs.string name
               , Hs.var srcSpan var
@@ -109,7 +109,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
           (Hs.qualVar srcSpan lens $ Ghc.mkVarOcc ".~")
         . Hs.explicitList srcSpan
         . fmap
-            (Hs.app srcSpan (Hs.qualVar srcSpan text $ Ghc.mkVarOcc "pack")
+            (Hs.app srcSpan (Hs.qualVar srcSpan string $ Ghc.mkVarOcc "fromString")
             . Hs.lit srcSpan
             . Hs.string
             . snd
@@ -131,7 +131,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
                 srcSpan
                 (Hs.qualVar srcSpan dataMaybe $ Ghc.mkDataOcc "Just")
             . Hs.par srcSpan
-            . Hs.app srcSpan (Hs.qualVar srcSpan text $ Ghc.mkVarOcc "pack")
+            . Hs.app srcSpan (Hs.qualVar srcSpan string $ Ghc.mkVarOcc "fromString")
             . Hs.lit srcSpan
             . Hs.string
             $ Type.qualifiedName moduleName type_

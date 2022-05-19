@@ -3,10 +3,10 @@ module Evoke.Hsc
   , throwError
   ) where
 
-import qualified Bag as Ghc
+import qualified GHC.Data.Bag as Ghc
 import qualified Control.Monad.IO.Class as IO
-import qualified ErrUtils as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Utils.Error as Ghc
+import qualified GHC.Plugins as Ghc
 
 -- | Adds a warning, which only causes compilation to fail if @-Werror@ is
 -- enabled.

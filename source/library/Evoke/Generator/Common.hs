@@ -8,7 +8,7 @@ module Evoke.Generator.Common
   , makeRandomVariable
   ) where
 
-import qualified Bag as Ghc
+import qualified GHC.Data.Bag as Ghc
 import qualified Control.Monad.IO.Class as IO
 import qualified Data.Char as Char
 import qualified Data.IORef as IORef
@@ -21,7 +21,7 @@ import qualified Evoke.Type.Constructor as Constructor
 import qualified Evoke.Type.Field as Field
 import qualified Evoke.Type.Type as Type
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 import qualified System.Console.GetOpt as Console
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Printf as Printf

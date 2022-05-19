@@ -6,12 +6,12 @@ module Evoke.Constant.Module
   , dataMaybe
   , dataMonoid
   , dataProxy
+  , dataString
   , dataSwagger
-  , dataText
   , testQuickCheck
   ) where
 
-import qualified Module as Ghc
+import qualified GHC.Unit.Module as Ghc
 
 controlApplicative :: Ghc.ModuleName
 controlApplicative = Ghc.mkModuleName "Control.Applicative"
@@ -34,11 +34,11 @@ dataMonoid = Ghc.mkModuleName "Data.Monoid"
 dataProxy :: Ghc.ModuleName
 dataProxy = Ghc.mkModuleName "Data.Proxy"
 
+dataString :: Ghc.ModuleName
+dataString = Ghc.mkModuleName "Data.String"
+
 dataSwagger :: Ghc.ModuleName
 dataSwagger = Ghc.mkModuleName "Data.Swagger"
-
-dataText :: Ghc.ModuleName
-dataText = Ghc.mkModuleName "Data.Text"
 
 testQuickCheck :: Ghc.ModuleName
 testQuickCheck = Ghc.mkModuleName "Test.QuickCheck"

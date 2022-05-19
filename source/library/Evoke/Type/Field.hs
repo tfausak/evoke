@@ -6,7 +6,7 @@ module Evoke.Type.Field
 
 import qualified Evoke.Hsc as Hsc
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 
 data Field = Field
   { name :: Ghc.OccName
@@ -21,7 +21,6 @@ make
 make srcSpan lHsType lFieldOcc = do
   lRdrName <- case Ghc.unLoc lFieldOcc of
     Ghc.FieldOcc _ x -> pure x
-    _ -> Hsc.throwError srcSpan $ Ghc.text "unsupported LFieldOcc"
   occName <- case Ghc.unLoc lRdrName of
     Ghc.Unqual x -> pure x
     _ -> Hsc.throwError srcSpan $ Ghc.text "unsupported RdrName"

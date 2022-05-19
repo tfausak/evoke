@@ -8,7 +8,7 @@ import qualified Control.Monad as Monad
 import qualified Evoke.Hsc as Hsc
 import qualified Evoke.Type.Constructor as Constructor
 import qualified GHC.Hs as Ghc
-import qualified GhcPlugins as Ghc
+import qualified GHC.Plugins as Ghc
 
 data Type = Type
   { name :: Ghc.IdP Ghc.GhcPs
@@ -25,10 +25,9 @@ make
 make lIdP lHsQTyVars lConDecls srcSpan = do
   lHsTyVarBndrs <- case lHsQTyVars of
     Ghc.HsQTvs _ hsq_explicit -> pure hsq_explicit
-    _ -> Hsc.throwError srcSpan $ Ghc.text "unsupported LHsQTyVars"
   theVariables <- Monad.forM lHsTyVarBndrs $ \lHsTyVarBndr ->
     case Ghc.unLoc lHsTyVarBndr of
-      Ghc.UserTyVar _ var -> pure $ Ghc.unLoc var
+      Ghc.UserTyVar _ _ var -> pure $ Ghc.unLoc var
       _ -> Hsc.throwError srcSpan $ Ghc.text "unknown LHsTyVarBndr"
   theConstructors <- mapM (Constructor.make srcSpan) lConDecls
   pure Type
