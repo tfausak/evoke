@@ -110,8 +110,11 @@ handleHsModule
 handleHsModule config moduleName hsModule = do
   (lImportDecls, lHsDecls) <- handleLHsDecls config moduleName
     $ Ghc.hsmodDecls hsModule
+  let ml = Maybe.listToMaybe $ reverse (fmap Ghc.getLoc (Ghc.hsmodImports hsModule)) <> fmap Ghc.getLoc lHsDecls
   pure hsModule
-    { Ghc.hsmodImports = Ghc.hsmodImports hsModule <> lImportDecls
+    { Ghc.hsmodImports = Ghc.hsmodImports hsModule <> case ml of
+      Nothing -> lImportDecls
+      Just l -> fmap (Ghc.L l . Ghc.unLoc) lImportDecls
     , Ghc.hsmodDecls = lHsDecls
     }
 
