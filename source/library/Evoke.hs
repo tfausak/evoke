@@ -110,13 +110,27 @@ handleHsModule
 handleHsModule config moduleName hsModule = do
   (lImportDecls, lHsDecls) <- handleLHsDecls config moduleName
     $ Ghc.hsmodDecls hsModule
-  let ml = Maybe.listToMaybe $ reverse (fmap Ghc.getLoc (Ghc.hsmodImports hsModule)) <> fmap Ghc.getLoc lHsDecls
+  let ml = Maybe.listToMaybe $ reverse (fmap Ghc.getLoc (Ghc.hsmodImports hsModule)) <> fmap (adjustSrcSpan . Ghc.getLoc) lHsDecls
   pure hsModule
     { Ghc.hsmodImports = Ghc.hsmodImports hsModule <> case ml of
       Nothing -> lImportDecls
       Just l -> fmap (Ghc.L l . Ghc.unLoc) lImportDecls
     , Ghc.hsmodDecls = lHsDecls
     }
+
+adjustSrcSpan :: Ghc.SrcSpan -> Ghc.SrcSpan
+adjustSrcSpan srcSpan =
+  let srcLoc = adjustSrcLoc $ Ghc.srcSpanStart srcSpan
+  in Ghc.mkSrcSpan srcLoc srcLoc
+
+adjustSrcLoc :: Ghc.SrcLoc -> Ghc.SrcLoc
+adjustSrcLoc srcLoc =
+  case srcLoc of
+    Ghc.RealSrcLoc realSrcLoc _ ->
+      let file = Ghc.srcLocFile realSrcLoc
+          line = Ghc.srcLocLine realSrcLoc
+      in Ghc.mkSrcLoc file (line - 1) 0
+    _ -> srcLoc
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
 handleLHsDecls
