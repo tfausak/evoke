@@ -29,7 +29,7 @@ generate _ lIdP lHsQTyVars lConDecls _ srcSpan = do
   quickCheck <- Common.makeRandomModule Module.testQuickCheck
   let
     lImportDecls = Hs.importDecls
-      srcSpan
+      Ghc.generatedSrcSpan
       [ (Module.controlApplicative, applicative)
       , (Module.testQuickCheck, quickCheck)
       ]
