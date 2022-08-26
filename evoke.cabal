@@ -51,7 +51,7 @@ library
   hs-source-dirs: source/library
   other-modules: Paths_evoke
 
-test-suite test
+test-suite evoke-test-suite
   build-depends:
     base
     , aeson >= 2.0.3 && < 2.1
