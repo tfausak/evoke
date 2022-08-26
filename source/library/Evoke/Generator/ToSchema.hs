@@ -60,18 +60,24 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
             srcSpan
             (Hs.qualVar srcSpan swagger $ Ghc.mkVarOcc "declareSchemaRef")
           . Hs.par srcSpan
+          . Ghc.reLocA
           . Ghc.L srcSpan
           . Ghc.ExprWithTySig
-            Ghc.noExtField
+            Ghc.noAnn
             (Hs.qualVar srcSpan proxy $ Ghc.mkDataOcc "Proxy")
           . Ghc.HsWC Ghc.noExtField
-          . Ghc.HsIB Ghc.noExtField
+          . Ghc.reLocA
+          . Ghc.L srcSpan
+          . Ghc.HsSig Ghc.noExtField Ghc.mkHsOuterImplicit
+          . Ghc.reLocA
           . Ghc.L srcSpan
           . Ghc.HsAppTy
             Ghc.noExtField
             (Hs.qualTyVar srcSpan proxy $ Ghc.mkClsOcc "Proxy")
+          . Ghc.reLocA
           . Ghc.L srcSpan
-          . Ghc.HsParTy Ghc.noExtField
+          . Ghc.HsParTy Ghc.noAnn
+          . Ghc.reLocA
           . Ghc.L srcSpan
           $ Field.type_ field -- TODO: This requires `ScopedTypeVariables`.
       bindStmts = fmap (\((field, _), var) -> toBind field var) fields
@@ -95,7 +101,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
             ( \((_, name), var) ->
                 Hs.explicitTuple srcSpan $
                   fmap
-                    (Hs.tupArg srcSpan)
+                    Hs.tupArg
                     [ Hs.app srcSpan (Hs.qualVar srcSpan string $ Ghc.mkVarOcc "fromString")
                         . Hs.lit srcSpan
                         $ Hs.string name,

@@ -39,7 +39,7 @@ import qualified System.Console.GetOpt as Console
 -- >   } deriving ToJSON via "Evoke"
 --
 -- The GHC user's guide has more detail about compiler plugins in general:
--- <https://downloads.haskell.org/~ghc/8.10.4/docs/html/users_guide/extending_ghc.html#compiler-plugins>.
+-- <https://downloads.haskell.org/ghc/9.2.4/docs/html/users_guide/extending_ghc.html#compiler-plugins>.
 plugin :: Ghc.Plugin
 plugin =
   Ghc.defaultPlugin
@@ -223,10 +223,9 @@ handleHsDeriving ::
     )
 handleHsDeriving config moduleName lIdP lHsQTyVars lConDecls hsDeriving = do
   (lHsDerivingClauses, (lImportDecls, lHsDecls)) <-
-    handleLHsDerivingClauses config moduleName lIdP lHsQTyVars lConDecls $
-      Ghc.unLoc hsDeriving
+    handleLHsDerivingClauses config moduleName lIdP lHsQTyVars lConDecls hsDeriving
   pure
-    ( Ghc.mapLoc (const lHsDerivingClauses) hsDeriving,
+    ( lHsDerivingClauses,
       (lImportDecls, lHsDecls)
     )
 
@@ -275,10 +274,16 @@ handleLHsDerivingClause config moduleName lIdP lHsQTyVars lConDecls lHsDerivingC
     Ghc.HsDerivingClause _ deriv_clause_strategy deriv_clause_tys
       | Just options <- parseDerivingStrategy deriv_clause_strategy -> do
           (lImportDecls, lHsDecls) <-
-            handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options $
-              Ghc.unLoc deriv_clause_tys
+            handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options
+              . toLHsSigTypes
+              $ Ghc.unLoc deriv_clause_tys
           pure (Nothing, (lImportDecls, lHsDecls))
     _ -> pure (Just lHsDerivingClause, ([], []))
+
+toLHsSigTypes :: Ghc.DerivClauseTys Ghc.GhcPs -> [Ghc.LHsSigType Ghc.GhcPs]
+toLHsSigTypes derivClauseTys = case derivClauseTys of
+  Ghc.DctSingle _ lHsSigType -> [lHsSigType]
+  Ghc.DctMulti _ lHsSigTypes -> lHsSigTypes
 
 -- | This plugin only fires on specific deriving strategies. In particular it
 -- looks for clauses like this:
@@ -292,10 +297,10 @@ parseDerivingStrategy ::
 parseDerivingStrategy mLDerivStrategy = do
   lDerivStrategy <- mLDerivStrategy
   lHsSigType <- case Ghc.unLoc lDerivStrategy of
-    Ghc.ViaStrategy x -> Just x
+    Ghc.ViaStrategy (Ghc.XViaStrategyPs _ x) -> Just $ Ghc.unLoc x
     _ -> Nothing
   lHsType <- case lHsSigType of
-    Ghc.HsIB _ x -> Just x
+    Ghc.HsSig _ _ x -> Just x
   hsTyLit <- case Ghc.unLoc lHsType of
     Ghc.HsTyLit _ x -> Just x
     _ -> Nothing
@@ -347,8 +352,7 @@ handleLHsSigType ::
     )
 handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType =
   do
-    let srcSpan = case lHsSigType of
-          Ghc.HsIB _ x -> Ghc.getLoc x
+    let srcSpan = Ghc.locA $ Ghc.getLoc lHsSigType
     (lImportDecls, lHsDecls) <- case getGenerator lHsSigType of
       Just generate ->
         generate moduleName lIdP lHsQTyVars lConDecls options srcSpan
@@ -356,11 +360,10 @@ handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType 
 
     verbose <- isVerbose config
     Monad.when verbose $ do
-      dynFlags <- Ghc.getDynFlags
       IO.liftIO $ do
         putStrLn $ replicate 80 '-'
-        mapM_ (putStrLn . Ghc.showSDocDump dynFlags . Ghc.ppr) lImportDecls
-        mapM_ (putStrLn . Ghc.showSDocDump dynFlags . Ghc.ppr) lHsDecls
+        mapM_ (putStrLn . Ghc.showSDocDump Ghc.defaultSDocContext . Ghc.ppr) lImportDecls
+        mapM_ (putStrLn . Ghc.showSDocDump Ghc.defaultSDocContext . Ghc.ppr) lHsDecls
 
     pure (lImportDecls, lHsDecls)
 
@@ -385,8 +388,8 @@ generators =
 -- | Extracts the class name out of a type signature.
 getClassName :: Ghc.LHsSigType Ghc.GhcPs -> Maybe String
 getClassName lHsSigType = do
-  lHsType <- case lHsSigType of
-    Ghc.HsIB _ x -> Just x
+  lHsType <- case Ghc.unLoc lHsSigType of
+    Ghc.HsSig _ _ x -> Just x
   lIdP <- case Ghc.unLoc lHsType of
     Ghc.HsTyVar _ _ x -> Just x
     _ -> Nothing

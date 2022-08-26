@@ -63,7 +63,7 @@ generate moduleName lIdP lHsQTyVars lConDecls options srcSpan = do
       lastStmt =
         Hs.lastStmt srcSpan
           . Hs.app srcSpan (Hs.qualVar srcSpan applicative $ Ghc.mkVarOcc "pure")
-          . Hs.recordCon srcSpan (Ghc.L srcSpan $ Constructor.name constructor)
+          . Hs.recordCon srcSpan (Ghc.reLocA . Ghc.L srcSpan $ Constructor.name constructor)
           . Hs.recFields
           $ fmap
             ( \(field, (_, var)) ->

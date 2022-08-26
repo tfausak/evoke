@@ -23,6 +23,7 @@ import qualified Evoke.Type.Type as Type
 import qualified GHC.Data.Bag as Ghc
 import qualified GHC.Hs as Ghc
 import qualified GHC.Plugins as Ghc
+import qualified GHC.Types.Fixity as Ghc
 import qualified System.Console.GetOpt as Console
 import qualified System.IO.Unsafe as Unsafe
 import qualified Text.Printf as Printf
@@ -136,11 +137,14 @@ makeLHsType ::
   Type.Type ->
   Ghc.LHsType Ghc.GhcPs
 makeLHsType srcSpan moduleName className =
-  Ghc.L srcSpan
+  Ghc.reLocA
+    . Ghc.L srcSpan
     . Ghc.HsAppTy
       Ghc.noExtField
-      ( Ghc.L srcSpan
-          . Ghc.HsTyVar Ghc.noExtField Ghc.NotPromoted
+      ( Ghc.reLocA
+          . Ghc.L srcSpan
+          . Ghc.HsTyVar Ghc.noAnn Ghc.NotPromoted
+          . Ghc.reLocA
           . Ghc.L srcSpan
           $ Ghc.Qual moduleName className
       )
@@ -151,22 +155,22 @@ toLHsType srcSpan type_ =
   let ext :: Ghc.NoExtField
       ext = Ghc.noExtField
 
-      loc :: a -> Ghc.Located a
-      loc = Ghc.L srcSpan
+      loc :: a -> Ghc.LocatedAn b a
+      loc = Ghc.reLocA . Ghc.L srcSpan
 
       initial :: Ghc.LHsType Ghc.GhcPs
-      initial = loc . Ghc.HsTyVar ext Ghc.NotPromoted . loc $ Type.name type_
+      initial = loc . Ghc.HsTyVar Ghc.noAnn Ghc.NotPromoted . loc $ Type.name type_
 
       combine ::
         Ghc.LHsType Ghc.GhcPs -> Ghc.IdP Ghc.GhcPs -> Ghc.LHsType Ghc.GhcPs
       combine x =
-        loc . Ghc.HsAppTy ext x . loc . Ghc.HsTyVar ext Ghc.NotPromoted . loc
+        loc . Ghc.HsAppTy ext x . loc . Ghc.HsTyVar Ghc.noAnn Ghc.NotPromoted . loc
 
       bare :: Ghc.LHsType Ghc.GhcPs
       bare = List.foldl' combine initial $ Type.variables type_
    in case Type.variables type_ of
         [] -> bare
-        _ -> loc $ Ghc.HsParTy ext bare
+        _ -> loc $ Ghc.HsParTy Ghc.noAnn bare
 
 makeHsContext ::
   Ghc.SrcSpan ->
@@ -176,16 +180,21 @@ makeHsContext ::
   [Ghc.LHsType Ghc.GhcPs]
 makeHsContext srcSpan moduleName className =
   fmap
-    ( Ghc.L srcSpan
+    ( Ghc.reLocA
+        . Ghc.L srcSpan
         . Ghc.HsAppTy
           Ghc.noExtField
-          ( Ghc.L srcSpan
-              . Ghc.HsTyVar Ghc.noExtField Ghc.NotPromoted
+          ( Ghc.reLocA
+              . Ghc.L srcSpan
+              . Ghc.HsTyVar Ghc.noAnn Ghc.NotPromoted
+              . Ghc.reLocA
               . Ghc.L srcSpan
               $ Ghc.Qual moduleName className
           )
+        . Ghc.reLocA
         . Ghc.L srcSpan
-        . Ghc.HsTyVar Ghc.noExtField Ghc.NotPromoted
+        . Ghc.HsTyVar Ghc.noAnn Ghc.NotPromoted
+        . Ghc.reLocA
         . Ghc.L srcSpan
         . Ghc.Unqual
     )
@@ -205,7 +214,7 @@ makeHsImplicitBndrs ::
   Type.Type ->
   Ghc.ModuleName ->
   Ghc.OccName ->
-  Ghc.HsImplicitBndrs Ghc.GhcPs (Ghc.LHsType Ghc.GhcPs)
+  Ghc.LHsSigType Ghc.GhcPs
 makeHsImplicitBndrs srcSpan type_ moduleName className =
   let withoutContext = makeLHsType srcSpan moduleName className type_
       context = makeHsContext srcSpan moduleName className type_
@@ -213,15 +222,15 @@ makeHsImplicitBndrs srcSpan type_ moduleName className =
         if null context
           then withoutContext
           else
-            Ghc.L srcSpan $
-              Ghc.HsQualTy Ghc.noExtField (Ghc.L srcSpan context) withoutContext
-   in Ghc.HsIB Ghc.noExtField withContext
+            Ghc.reLocA . Ghc.L srcSpan $
+              Ghc.HsQualTy Ghc.noExtField (Just . Ghc.reLocA $ Ghc.L srcSpan context) withoutContext
+   in Ghc.reLocA . Ghc.L srcSpan $ Ghc.HsSig Ghc.noExtField Ghc.mkHsOuterImplicit withContext
 
 -- | Makes a random variable name using the given prefix.
 makeRandomVariable :: Ghc.SrcSpan -> String -> Ghc.Hsc (Ghc.LIdP Ghc.GhcPs)
 makeRandomVariable srcSpan prefix = do
   n <- bumpCounter
-  pure . Ghc.L srcSpan . Ghc.Unqual . Ghc.mkVarOcc $
+  pure . Ghc.reLocA . Ghc.L srcSpan . Ghc.Unqual . Ghc.mkVarOcc $
     Printf.printf
       "%s%d"
       prefix
@@ -262,15 +271,16 @@ makeInstanceDeclaration srcSpan type_ moduleName occName lHsBinds =
 
 makeLHsDecl ::
   Ghc.SrcSpan ->
-  Ghc.HsImplicitBndrs Ghc.GhcPs (Ghc.LHsType Ghc.GhcPs) ->
+  Ghc.LHsSigType Ghc.GhcPs ->
   [Ghc.LHsBind Ghc.GhcPs] ->
   Ghc.LHsDecl Ghc.GhcPs
 makeLHsDecl srcSpan hsImplicitBndrs lHsBinds =
-  Ghc.L srcSpan
+  Ghc.reLocA
+    . Ghc.L srcSpan
     . Ghc.InstD Ghc.noExtField
     . Ghc.ClsInstD Ghc.noExtField
     $ Ghc.ClsInstDecl
-      Ghc.noExtField
+      (Ghc.noAnn, Ghc.NoAnnSortKey)
       hsImplicitBndrs
       (Ghc.listToBag lHsBinds)
       []
@@ -296,7 +306,7 @@ makeMatchGroup ::
 makeMatchGroup srcSpan occName lPats hsExpr =
   Ghc.MG
     Ghc.noExtField
-    (Ghc.L srcSpan [Ghc.L srcSpan $ makeMatch srcSpan occName lPats hsExpr])
+    (Ghc.reLocA $ Ghc.L srcSpan [Ghc.reLocA . Ghc.L srcSpan $ makeMatch srcSpan occName lPats hsExpr])
     Ghc.Generated
 
 makeMatch ::
@@ -307,9 +317,9 @@ makeMatch ::
   Ghc.Match Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)
 makeMatch srcSpan occName lPats =
   Ghc.Match
-    Ghc.noExtField
+    Ghc.noAnn
     ( Ghc.FunRhs
-        (Ghc.L srcSpan $ Ghc.Unqual occName)
+        (Ghc.reLocA . Ghc.L srcSpan $ Ghc.Unqual occName)
         Ghc.Prefix
         Ghc.NoSrcStrict
     )
@@ -321,9 +331,8 @@ makeGRHSs ::
   Ghc.LHsExpr Ghc.GhcPs ->
   Ghc.GRHSs Ghc.GhcPs (Ghc.LHsExpr Ghc.GhcPs)
 makeGRHSs srcSpan hsExpr =
-  Ghc.GRHSs Ghc.noExtField [Hs.grhs srcSpan hsExpr]
-    . Ghc.L srcSpan
-    $ Ghc.EmptyLocalBinds Ghc.noExtField
+  Ghc.GRHSs Ghc.emptyComments [Hs.grhs srcSpan hsExpr] $
+    Ghc.EmptyLocalBinds Ghc.noExtField
 
 bumpCounter :: IO.MonadIO m => m Word
 bumpCounter = IO.liftIO . IORef.atomicModifyIORef' counterRef $ \n -> (n + 1, n)
