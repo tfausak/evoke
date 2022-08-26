@@ -1,8 +1,7 @@
 {
   "dockerComposeFile": "compose.yaml",
   "extensions": [
-    "Edka.haskutil",
-    "dramforever.vscode-ghc-simple"
+    "taylorfausak.purple-yolk"
   ],
   "initializeCommand": ".devcontainer/initialize.sh",
   "onCreateCommand": ".devcontainer/on-create.sh",
