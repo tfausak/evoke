@@ -1,5 +1,5 @@
 {
-  "dockerComposeFile": "docker-compose.yaml",
+  "dockerComposeFile": "compose.yaml",
   "extensions": [
     "Edka.haskutil",
     "dramforever.vscode-ghc-simple"
