@@ -1,7 +1,7 @@
 services:
   devcontainer:
-    build: .
     command: sh -c 'while sleep 1; do :; done'
+    image: ghcr.io/acilearning/docker-haskell:9.0.2
     init: true
     volumes:
       - ..:/workspace
