@@ -1,0 +1,96 @@
+name: Workflow
+
+on:
+  push: null
+
+jobs:
+
+  cabal:
+    runs-on: ubuntu-latest
+    name: Cabal
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: cabal check
+
+  hlint:
+    runs-on: ubuntu-latest
+    name: HLint
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: haskell/actions/hlint-setup@v2
+
+      - uses: haskell/actions/hlint-run@v2
+        with:
+          fail-on: status
+
+  ormolu:
+    runs-on: ubuntu-latest
+    name: Ormolu
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: mrkkrp/ormolu-action@v7
+
+  build:
+    strategy:
+      matrix:
+        platform:
+          - macos
+          - ubuntu
+          - windows
+    runs-on: ${{ matrix.platform }}-latest
+    name: Build on ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: mkdir artifact
+
+      - if: matrix.platform == 'ubuntu'
+        run: |
+          cp -R LICENSE.txt README.markdown artifact
+          cabal sdist --output-dir artifact
+
+      - id: artifact
+        run: echo '::set-output name=directory::artifact/${{ matrix.platform }}'
+
+      - run: mkdir ${{ steps.artifact.outputs.directory }}
+
+      - id: setup-haskell
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: 9.2.4
+
+      - run: cabal configure --enable-tests --jobs
+
+      - run: cat cabal.project.local
+
+      - run: cp cabal.project.local ${{ steps.artifact.outputs.directory }}
+
+      - run: cabal freeze
+
+      - run: cat cabal.project.freeze
+
+      - run: cp cabal.project.freeze ${{ steps.artifact.outputs.directory }}
+
+      - run: cabal outdated --v2-freeze-file cabal.project.freeze
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ matrix.platform }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: ${{ matrix.platform }}-
+
+      - run: cabal build --only-download
+
+      - run: cabal build --only-dependencies
+
+      - run: cabal build
+
+      - run: cabal run evoke-test-suite
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: evoke-${{ github.sha }}
+          path: artifact

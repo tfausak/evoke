@@ -103,7 +103,7 @@ Evoke to explore that option.
 
 ## Installation
 
-Currently Evoke only supports GHC 8.10. It is possible to support a wider range
+Currently Evoke only supports GHC 9.2. It is possible to support a wider range
 of versions, but I haven't put in the legwork necessary to make that possible.
 Please let me know if you'd like to use Evoke with a different version of GHC.
 

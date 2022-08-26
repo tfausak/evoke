@@ -1,30 +1,31 @@
 module Evoke.Type.Field
-  ( Field(..)
-  , make
-  , isOptional
-  ) where
+  ( Field (..),
+    make,
+    isOptional,
+  )
+where
 
 import qualified Evoke.Hsc as Hsc
 import qualified GHC.Hs as Ghc
 import qualified GHC.Plugins as Ghc
 
 data Field = Field
-  { name :: Ghc.OccName
-  , type_ :: Ghc.HsType Ghc.GhcPs
+  { name :: Ghc.OccName,
+    type_ :: Ghc.HsType Ghc.GhcPs
   }
 
-make
-  :: Ghc.SrcSpan
-  -> Ghc.LHsType Ghc.GhcPs
-  -> Ghc.LFieldOcc Ghc.GhcPs
-  -> Ghc.Hsc Field
+make ::
+  Ghc.SrcSpan ->
+  Ghc.LHsType Ghc.GhcPs ->
+  Ghc.LFieldOcc Ghc.GhcPs ->
+  Ghc.Hsc Field
 make srcSpan lHsType lFieldOcc = do
   lRdrName <- case Ghc.unLoc lFieldOcc of
     Ghc.FieldOcc _ x -> pure x
   occName <- case Ghc.unLoc lRdrName of
     Ghc.Unqual x -> pure x
     _ -> Hsc.throwError srcSpan $ Ghc.text "unsupported RdrName"
-  pure Field { name = occName, type_ = Ghc.unLoc lHsType }
+  pure Field {name = occName, type_ = Ghc.unLoc lHsType}
 
 isOptional :: Field -> Bool
 isOptional field = case type_ field of
