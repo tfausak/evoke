@@ -5,9 +5,9 @@ services:
     command: sh -x -c 'while :; do sleep 60; done'
     init: true
     volumes:
-      - ..:/workspace:cached
-      - cabal:/home/haskell/.cabal:cached
-      - cabal-store:/cabal-store:cached
+      - ..:/workspace
+      - cabal:/home/haskell/.cabal
+      - cabal-store:/cabal-store
     working_dir: /workspace
 volumes:
   cabal: null
