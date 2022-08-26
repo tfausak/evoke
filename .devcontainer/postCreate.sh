@@ -3,5 +3,5 @@ set -o errexit -o xtrace
 
 cabal update
 
-test -f cabal.project.local \
-  || cabal configure --enable-tests --jobs --test-show-details direct
+test -f cabal.project.local ||
+  cabal configure --enable-tests --jobs --test-show-details direct
