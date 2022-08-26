@@ -5,7 +5,7 @@
     "dramforever.vscode-ghc-simple"
   ],
   "initializeCommand": ".devcontainer/initialize.sh",
-  "postCreateCommand": ".devcontainer/postCreate.sh",
+  "postCreateCommand": ".devcontainer/post-create.sh",
   "service": "devcontainer",
   "workspaceFolder": "/workspace"
 }
