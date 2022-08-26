@@ -1,7 +1,7 @@
 services:
   devcontainer:
     build: .
-    command: sh -x -c 'while :; do sleep 60; done'
+    command: sh -c 'while sleep 1; do :; done'
     init: true
     volumes:
       - ..:/workspace
