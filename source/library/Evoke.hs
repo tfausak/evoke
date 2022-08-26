@@ -1,6 +1,7 @@
 module Evoke
-  ( plugin
-  ) where
+  ( plugin,
+  )
+where
 
 import qualified Control.Monad as Monad
 import qualified Control.Monad.IO.Class as IO
@@ -40,10 +41,11 @@ import qualified System.Console.GetOpt as Console
 -- The GHC user's guide has more detail about compiler plugins in general:
 -- <https://downloads.haskell.org/~ghc/8.10.4/docs/html/users_guide/extending_ghc.html#compiler-plugins>.
 plugin :: Ghc.Plugin
-plugin = Ghc.defaultPlugin
-  { Ghc.parsedResultAction = parsedResultAction
-  , Ghc.pluginRecompile = Ghc.purePlugin
-  }
+plugin =
+  Ghc.defaultPlugin
+    { Ghc.parsedResultAction = parsedResultAction,
+      Ghc.pluginRecompile = Ghc.purePlugin
+    }
 
 -- | This is the main entry point for the plugin. It receives the command line
 -- options, module summary, and parsed module from GHC. Ultimately it produces
@@ -51,15 +53,14 @@ plugin = Ghc.defaultPlugin
 --
 -- From a high level, this function parses the command line options to build a
 -- config, then hands things off to the next function ('handleLHsModule').
-parsedResultAction
-  :: [Ghc.CommandLineOption]
-  -> Ghc.ModSummary
-  -> Ghc.HsParsedModule
-  -> Ghc.Hsc Ghc.HsParsedModule
+parsedResultAction ::
+  [Ghc.CommandLineOption] ->
+  Ghc.ModSummary ->
+  Ghc.HsParsedModule ->
+  Ghc.Hsc Ghc.HsParsedModule
 parsedResultAction commandLineOptions modSummary hsParsedModule = do
-  let
-    lHsModule1 = Ghc.hpm_module hsParsedModule
-    srcSpan = Ghc.getLoc lHsModule1
+  let lHsModule1 = Ghc.hpm_module hsParsedModule
+      srcSpan = Ghc.getLoc lHsModule1
   flags <- Options.parse Flag.options commandLineOptions srcSpan
   let config = Config.fromFlags flags
   Monad.when (Config.help config)
@@ -68,12 +69,13 @@ parsedResultAction commandLineOptions modSummary hsParsedModule = do
     . fmap Ghc.text
     . lines
     $ Console.usageInfo ("Evoke version " <> version) Flag.options
-  Monad.when (Config.version config) . Hsc.throwError srcSpan $ Ghc.text
-    version
+  Monad.when (Config.version config) . Hsc.throwError srcSpan $
+    Ghc.text
+      version
 
   let moduleName = Ghc.moduleName $ Ghc.ms_mod modSummary
   lHsModule2 <- handleLHsModule config moduleName lHsModule1
-  pure hsParsedModule { Ghc.hpm_module = lHsModule2 }
+  pure hsParsedModule {Ghc.hpm_module = lHsModule2}
 
 -- | This package's version number as a string.
 version :: String
@@ -88,11 +90,11 @@ version = Version.showVersion This.version
 --
 -- All of these functions are plumbing. If you want to skip to the interesting
 -- part, go to 'handleLHsSigType'.
-handleLHsModule
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> LHsModule
-  -> Ghc.Hsc LHsModule
+handleLHsModule ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  LHsModule ->
+  Ghc.Hsc LHsModule
 handleLHsModule config moduleName lHsModule = do
   hsModule <- handleHsModule config moduleName $ Ghc.unLoc lHsModule
   pure $ Ghc.mapLoc (const hsModule) lHsModule
@@ -102,174 +104,180 @@ handleLHsModule config moduleName lHsModule = do
 type LHsModule = Ghc.Located Ghc.HsModule
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleHsModule
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.HsModule
-  -> Ghc.Hsc Ghc.HsModule
+handleHsModule ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.HsModule ->
+  Ghc.Hsc Ghc.HsModule
 handleHsModule config moduleName hsModule = do
-  (lImportDecls, lHsDecls) <- handleLHsDecls config moduleName
-    $ Ghc.hsmodDecls hsModule
-  pure hsModule
-    { Ghc.hsmodImports = Ghc.hsmodImports hsModule <> lImportDecls
-    , Ghc.hsmodDecls = lHsDecls
-    }
+  (lImportDecls, lHsDecls) <-
+    handleLHsDecls config moduleName $
+      Ghc.hsmodDecls hsModule
+  pure
+    hsModule
+      { Ghc.hsmodImports = Ghc.hsmodImports hsModule <> lImportDecls,
+        Ghc.hsmodDecls = lHsDecls
+      }
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleLHsDecls
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> [Ghc.LHsDecl Ghc.GhcPs]
-  -> Ghc.Hsc ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
+handleLHsDecls ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  [Ghc.LHsDecl Ghc.GhcPs] ->
+  Ghc.Hsc ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
 handleLHsDecls config moduleName lHsDecls = do
   tuples <- mapM (handleLHsDecl config moduleName) lHsDecls
   pure . Bifunctor.bimap mconcat mconcat $ unzip tuples
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleLHsDecl
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LHsDecl Ghc.GhcPs
-  -> Ghc.Hsc ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
+handleLHsDecl ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LHsDecl Ghc.GhcPs ->
+  Ghc.Hsc ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
 handleLHsDecl config moduleName lHsDecl = case Ghc.unLoc lHsDecl of
   Ghc.TyClD xTyClD tyClDecl1 -> do
-    (tyClDecl2, (lImportDecls, lHsDecls)) <- handleTyClDecl
-      config
-      moduleName
-      tyClDecl1
+    (tyClDecl2, (lImportDecls, lHsDecls)) <-
+      handleTyClDecl
+        config
+        moduleName
+        tyClDecl1
     pure
-      ( lImportDecls
-      , Ghc.mapLoc (const $ Ghc.TyClD xTyClD tyClDecl2) lHsDecl : lHsDecls
+      ( lImportDecls,
+        Ghc.mapLoc (const $ Ghc.TyClD xTyClD tyClDecl2) lHsDecl : lHsDecls
       )
   _ -> pure ([], [lHsDecl])
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleTyClDecl
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.TyClDecl Ghc.GhcPs
-  -> Ghc.Hsc
-       ( Ghc.TyClDecl Ghc.GhcPs
-       , ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
-       )
+handleTyClDecl ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.TyClDecl Ghc.GhcPs ->
+  Ghc.Hsc
+    ( Ghc.TyClDecl Ghc.GhcPs,
+      ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
+    )
 handleTyClDecl config moduleName tyClDecl = case tyClDecl of
   Ghc.DataDecl tcdDExt tcdLName tcdTyVars tcdFixity tcdDataDefn -> do
-    (hsDataDefn, (lImportDecls, lHsDecls)) <- handleHsDataDefn
-      config
-      moduleName
-      tcdLName
-      tcdTyVars
-      tcdDataDefn
+    (hsDataDefn, (lImportDecls, lHsDecls)) <-
+      handleHsDataDefn
+        config
+        moduleName
+        tcdLName
+        tcdTyVars
+        tcdDataDefn
     pure
-      ( Ghc.DataDecl tcdDExt tcdLName tcdTyVars tcdFixity hsDataDefn
-      , (lImportDecls, lHsDecls)
+      ( Ghc.DataDecl tcdDExt tcdLName tcdTyVars tcdFixity hsDataDefn,
+        (lImportDecls, lHsDecls)
       )
   _ -> pure (tyClDecl, ([], []))
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleHsDataDefn
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LIdP Ghc.GhcPs
-  -> Ghc.LHsQTyVars Ghc.GhcPs
-  -> Ghc.HsDataDefn Ghc.GhcPs
-  -> Ghc.Hsc
-       ( Ghc.HsDataDefn Ghc.GhcPs
-       , ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
-       )
+handleHsDataDefn ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LIdP Ghc.GhcPs ->
+  Ghc.LHsQTyVars Ghc.GhcPs ->
+  Ghc.HsDataDefn Ghc.GhcPs ->
+  Ghc.Hsc
+    ( Ghc.HsDataDefn Ghc.GhcPs,
+      ([Ghc.LImportDecl Ghc.GhcPs], [Ghc.LHsDecl Ghc.GhcPs])
+    )
 handleHsDataDefn config moduleName lIdP lHsQTyVars hsDataDefn =
   case hsDataDefn of
-    Ghc.HsDataDefn dd_ext dd_ND dd_ctxt dd_cType dd_kindSig dd_cons dd_derivs
-      -> do
-        (hsDeriving, (lImportDecls, lHsDecls)) <- handleHsDeriving
-          config
-          moduleName
-          lIdP
-          lHsQTyVars
-          dd_cons
-          dd_derivs
+    Ghc.HsDataDefn dd_ext dd_ND dd_ctxt dd_cType dd_kindSig dd_cons dd_derivs ->
+      do
+        (hsDeriving, (lImportDecls, lHsDecls)) <-
+          handleHsDeriving
+            config
+            moduleName
+            lIdP
+            lHsQTyVars
+            dd_cons
+            dd_derivs
         pure
           ( Ghc.HsDataDefn
-            dd_ext
-            dd_ND
-            dd_ctxt
-            dd_cType
-            dd_kindSig
-            dd_cons
-            hsDeriving
-          , (lImportDecls, lHsDecls)
+              dd_ext
+              dd_ND
+              dd_ctxt
+              dd_cType
+              dd_kindSig
+              dd_cons
+              hsDeriving,
+            (lImportDecls, lHsDecls)
           )
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleHsDeriving
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LIdP Ghc.GhcPs
-  -> Ghc.LHsQTyVars Ghc.GhcPs
-  -> [Ghc.LConDecl Ghc.GhcPs]
-  -> Ghc.HsDeriving Ghc.GhcPs
-  -> Ghc.Hsc
-       ( Ghc.HsDeriving Ghc.GhcPs
-       , ( [Ghc.LImportDecl Ghc.GhcPs]
-         , [Ghc.LHsDecl Ghc.GhcPs]
-         )
-       )
+handleHsDeriving ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LIdP Ghc.GhcPs ->
+  Ghc.LHsQTyVars Ghc.GhcPs ->
+  [Ghc.LConDecl Ghc.GhcPs] ->
+  Ghc.HsDeriving Ghc.GhcPs ->
+  Ghc.Hsc
+    ( Ghc.HsDeriving Ghc.GhcPs,
+      ( [Ghc.LImportDecl Ghc.GhcPs],
+        [Ghc.LHsDecl Ghc.GhcPs]
+      )
+    )
 handleHsDeriving config moduleName lIdP lHsQTyVars lConDecls hsDeriving = do
   (lHsDerivingClauses, (lImportDecls, lHsDecls)) <-
-    handleLHsDerivingClauses config moduleName lIdP lHsQTyVars lConDecls
-      $ Ghc.unLoc hsDeriving
+    handleLHsDerivingClauses config moduleName lIdP lHsQTyVars lConDecls $
+      Ghc.unLoc hsDeriving
   pure
-    ( Ghc.mapLoc (const lHsDerivingClauses) hsDeriving
-    , (lImportDecls, lHsDecls)
+    ( Ghc.mapLoc (const lHsDerivingClauses) hsDeriving,
+      (lImportDecls, lHsDecls)
     )
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleLHsDerivingClauses
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LIdP Ghc.GhcPs
-  -> Ghc.LHsQTyVars Ghc.GhcPs
-  -> [Ghc.LConDecl Ghc.GhcPs]
-  -> [Ghc.LHsDerivingClause Ghc.GhcPs]
-  -> Ghc.Hsc
-       ( [Ghc.LHsDerivingClause Ghc.GhcPs]
-       , ( [Ghc.LImportDecl Ghc.GhcPs]
-         , [Ghc.LHsDecl Ghc.GhcPs]
-         )
-       )
-handleLHsDerivingClauses config moduleName lIdP lHsQTyVars lConDecls lHsDerivingClauses
-  = do
-    tuples <- mapM
-      (handleLHsDerivingClause config moduleName lIdP lHsQTyVars lConDecls)
-      lHsDerivingClauses
+handleLHsDerivingClauses ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LIdP Ghc.GhcPs ->
+  Ghc.LHsQTyVars Ghc.GhcPs ->
+  [Ghc.LConDecl Ghc.GhcPs] ->
+  [Ghc.LHsDerivingClause Ghc.GhcPs] ->
+  Ghc.Hsc
+    ( [Ghc.LHsDerivingClause Ghc.GhcPs],
+      ( [Ghc.LImportDecl Ghc.GhcPs],
+        [Ghc.LHsDecl Ghc.GhcPs]
+      )
+    )
+handleLHsDerivingClauses config moduleName lIdP lHsQTyVars lConDecls lHsDerivingClauses =
+  do
+    tuples <-
+      mapM
+        (handleLHsDerivingClause config moduleName lIdP lHsQTyVars lConDecls)
+        lHsDerivingClauses
     pure
       . Bifunctor.bimap
-          Maybe.catMaybes
-          (Bifunctor.bimap mconcat mconcat . unzip)
+        Maybe.catMaybes
+        (Bifunctor.bimap mconcat mconcat . unzip)
       $ unzip tuples
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleLHsDerivingClause
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LIdP Ghc.GhcPs
-  -> Ghc.LHsQTyVars Ghc.GhcPs
-  -> [Ghc.LConDecl Ghc.GhcPs]
-  -> Ghc.LHsDerivingClause Ghc.GhcPs
-  -> Ghc.Hsc
-       ( Maybe (Ghc.LHsDerivingClause Ghc.GhcPs)
-       , ( [Ghc.LImportDecl Ghc.GhcPs]
-         , [Ghc.LHsDecl Ghc.GhcPs]
-         )
-       )
-handleLHsDerivingClause config moduleName lIdP lHsQTyVars lConDecls lHsDerivingClause
-  = case Ghc.unLoc lHsDerivingClause of
+handleLHsDerivingClause ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LIdP Ghc.GhcPs ->
+  Ghc.LHsQTyVars Ghc.GhcPs ->
+  [Ghc.LConDecl Ghc.GhcPs] ->
+  Ghc.LHsDerivingClause Ghc.GhcPs ->
+  Ghc.Hsc
+    ( Maybe (Ghc.LHsDerivingClause Ghc.GhcPs),
+      ( [Ghc.LImportDecl Ghc.GhcPs],
+        [Ghc.LHsDecl Ghc.GhcPs]
+      )
+    )
+handleLHsDerivingClause config moduleName lIdP lHsQTyVars lConDecls lHsDerivingClause =
+  case Ghc.unLoc lHsDerivingClause of
     Ghc.HsDerivingClause _ deriv_clause_strategy deriv_clause_tys
       | Just options <- parseDerivingStrategy deriv_clause_strategy -> do
-        (lImportDecls, lHsDecls) <-
-          handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options
-            $ Ghc.unLoc deriv_clause_tys
-        pure (Nothing, (lImportDecls, lHsDecls))
+          (lImportDecls, lHsDecls) <-
+            handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options $
+              Ghc.unLoc deriv_clause_tys
+          pure (Nothing, (lImportDecls, lHsDecls))
     _ -> pure (Just lHsDerivingClause, ([], []))
 
 -- | This plugin only fires on specific deriving strategies. In particular it
@@ -279,8 +287,8 @@ handleLHsDerivingClause config moduleName lIdP lHsQTyVars lConDecls lHsDerivingC
 --
 -- This function is responsible for analyzing a deriving strategy to determine
 -- if the plugin should fire or not.
-parseDerivingStrategy
-  :: Maybe (Ghc.LDerivStrategy Ghc.GhcPs) -> Maybe [String]
+parseDerivingStrategy ::
+  Maybe (Ghc.LDerivStrategy Ghc.GhcPs) -> Maybe [String]
 parseDerivingStrategy mLDerivStrategy = do
   lDerivStrategy <- mLDerivStrategy
   lHsSigType <- case Ghc.unLoc lDerivStrategy of
@@ -299,23 +307,24 @@ parseDerivingStrategy mLDerivStrategy = do
     _ -> Nothing
 
 -- | See 'handleLHsModule' and 'handleLHsSigType'.
-handleLHsSigTypes
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LIdP Ghc.GhcPs
-  -> Ghc.LHsQTyVars Ghc.GhcPs
-  -> [Ghc.LConDecl Ghc.GhcPs]
-  -> [String]
-  -> [Ghc.LHsSigType Ghc.GhcPs]
-  -> Ghc.Hsc
-       ( [Ghc.LImportDecl Ghc.GhcPs]
-       , [Ghc.LHsDecl Ghc.GhcPs]
-       )
-handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options lHsSigTypes
-  = do
-    tuples <- mapM
-      (handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options)
-      lHsSigTypes
+handleLHsSigTypes ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LIdP Ghc.GhcPs ->
+  Ghc.LHsQTyVars Ghc.GhcPs ->
+  [Ghc.LConDecl Ghc.GhcPs] ->
+  [String] ->
+  [Ghc.LHsSigType Ghc.GhcPs] ->
+  Ghc.Hsc
+    ( [Ghc.LImportDecl Ghc.GhcPs],
+      [Ghc.LHsDecl Ghc.GhcPs]
+    )
+handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options lHsSigTypes =
+  do
+    tuples <-
+      mapM
+        (handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options)
+        lHsSigTypes
     pure . Bifunctor.bimap mconcat mconcat $ unzip tuples
 
 -- | This is the main workhorse of the plugin. By the time things get here,
@@ -324,23 +333,22 @@ handleLHsSigTypes config moduleName lIdP lHsQTyVars lConDecls options lHsSigType
 -- If we don't know how to generate an instance for the requested class, an
 -- error will be thrown. If the user requested verbose output, the generated
 -- instance will be printed.
-handleLHsSigType
-  :: Config.Config
-  -> Ghc.ModuleName
-  -> Ghc.LIdP Ghc.GhcPs
-  -> Ghc.LHsQTyVars Ghc.GhcPs
-  -> [Ghc.LConDecl Ghc.GhcPs]
-  -> [String]
-  -> Ghc.LHsSigType Ghc.GhcPs
-  -> Ghc.Hsc
-       ( [Ghc.LImportDecl Ghc.GhcPs]
-       , [Ghc.LHsDecl Ghc.GhcPs]
-       )
-handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType
-  = do
-    let
-      srcSpan = case lHsSigType of
-        Ghc.HsIB _ x -> Ghc.getLoc x
+handleLHsSigType ::
+  Config.Config ->
+  Ghc.ModuleName ->
+  Ghc.LIdP Ghc.GhcPs ->
+  Ghc.LHsQTyVars Ghc.GhcPs ->
+  [Ghc.LConDecl Ghc.GhcPs] ->
+  [String] ->
+  Ghc.LHsSigType Ghc.GhcPs ->
+  Ghc.Hsc
+    ( [Ghc.LImportDecl Ghc.GhcPs],
+      [Ghc.LHsDecl Ghc.GhcPs]
+    )
+handleLHsSigType config moduleName lIdP lHsQTyVars lConDecls options lHsSigType =
+  do
+    let srcSpan = case lHsSigType of
+          Ghc.HsIB _ x -> Ghc.getLoc x
     (lImportDecls, lHsDecls) <- case getGenerator lHsSigType of
       Just generate ->
         generate moduleName lIdP lHsQTyVars lConDecls options srcSpan
@@ -368,10 +376,10 @@ getGenerator lHsSigType = do
 
 generators :: [(String, Common.Generator)]
 generators =
-  [ ("Arbitrary", Arbitrary.generate)
-  , ("FromJSON", FromJSON.generate)
-  , ("ToJSON", ToJSON.generate)
-  , ("ToSchema", ToSchema.generate)
+  [ ("Arbitrary", Arbitrary.generate),
+    ("FromJSON", FromJSON.generate),
+    ("ToJSON", ToJSON.generate),
+    ("ToSchema", ToSchema.generate)
   ]
 
 -- | Extracts the class name out of a type signature.

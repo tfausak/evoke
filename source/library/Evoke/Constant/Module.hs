@@ -1,15 +1,16 @@
 module Evoke.Constant.Module
-  ( controlApplicative
-  , controlLens
-  , dataAeson
-  , dataHashMapStrictInsOrd
-  , dataMaybe
-  , dataMonoid
-  , dataProxy
-  , dataString
-  , dataSwagger
-  , testQuickCheck
-  ) where
+  ( controlApplicative,
+    controlLens,
+    dataAeson,
+    dataHashMapStrictInsOrd,
+    dataMaybe,
+    dataMonoid,
+    dataProxy,
+    dataString,
+    dataSwagger,
+    testQuickCheck,
+  )
+where
 
 import qualified GHC.Unit.Module as Ghc
 

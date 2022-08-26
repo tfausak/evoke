@@ -1,7 +1,8 @@
 module Evoke.Type.Constructor
-  ( Constructor(..)
-  , make
-  ) where
+  ( Constructor (..),
+    make,
+  )
+where
 
 import qualified Control.Monad as Monad
 import qualified Evoke.Hsc as Hsc
@@ -10,8 +11,8 @@ import qualified GHC.Hs as Ghc
 import qualified GHC.Plugins as Ghc
 
 data Constructor = Constructor
-  { name :: Ghc.IdP Ghc.GhcPs
-  , fields :: [Field.Field]
+  { name :: Ghc.IdP Ghc.GhcPs,
+    fields :: [Field.Field]
   }
 
 make :: Ghc.SrcSpan -> Ghc.LConDecl Ghc.GhcPs -> Ghc.Hsc Constructor
@@ -27,4 +28,4 @@ make srcSpan lConDecl = do
       (lFieldOccs, lHsType) <- case Ghc.unLoc lConDeclField of
         Ghc.ConDeclField _ x y _ -> pure (x, y)
       mapM (Field.make srcSpan lHsType) lFieldOccs
-  pure Constructor { name = Ghc.unLoc lIdP, fields = theFields }
+  pure Constructor {name = Ghc.unLoc lIdP, fields = theFields}

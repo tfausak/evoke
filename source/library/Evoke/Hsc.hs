@@ -1,12 +1,13 @@
 module Evoke.Hsc
-  ( addWarning
-  , throwError
-  ) where
+  ( addWarning,
+    throwError,
+  )
+where
 
-import qualified GHC.Data.Bag as Ghc
 import qualified Control.Monad.IO.Class as IO
-import qualified GHC.Utils.Error as Ghc
+import qualified GHC.Data.Bag as Ghc
 import qualified GHC.Plugins as Ghc
+import qualified GHC.Utils.Error as Ghc
 
 -- | Adds a warning, which only causes compilation to fail if @-Werror@ is
 -- enabled.
