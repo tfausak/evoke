@@ -3,7 +3,10 @@ cabal-version: >= 1.10
 name: evoke
 version: 0.2022.8.26
 synopsis: A GHC plugin to derive instances.
-description: Evoke is a GHC plugin to derive instances.
+description:
+  Warning: This package is not maintained anymore. Consider using @Generic@ deriving instead.
+  .
+  Evoke is a GHC plugin to derive instances.
 
 build-type: Simple
 category: Plugin
