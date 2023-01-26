@@ -1,5 +1,7 @@
 # Evoke
 
+:warning: This package is not maintained anymore. Consider using `Generic` deriving instead.
+
 :crystal_ball: Evoke is a GHC plugin that automatically derives type class
 instances without using generics or Template Haskell.
 
